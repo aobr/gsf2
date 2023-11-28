@@ -1,0 +1,5 @@
+import gsf
+
+
+def test_gsf():
+    assert gsf.add_one(1) == 2
