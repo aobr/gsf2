@@ -1,0 +1,60 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module twobody ! in 
+    interface  ! in :twobody
+        subroutine star_star_potential(ms,xs,ys,zs,eps,ns,pots) ! in :twobody:twobody.f95
+            use omp_lib
+            real*8 dimension(ns),intent(in) :: ms
+            real*8 dimension(ns),intent(in),depend(ns) :: xs
+            real*8 dimension(ns),intent(in),depend(ns) :: ys
+            real*8 dimension(ns),intent(in),depend(ns) :: zs
+            real*8 intent(in) :: eps
+            integer*4, optional,intent(hide),depend(ms) :: ns=len(ms)
+            real*8 dimension(ns),intent(out),depend(ns) :: pots
+        end subroutine star_star_potential
+        subroutine star_other_potential(m,x,y,z,xs,ys,zs,eps,n,ns,pots) ! in :twobody:twobody.f95
+            use omp_lib
+            real*8 dimension(n),intent(in) :: m
+            real*8 dimension(n),intent(in),depend(n) :: x
+            real*8 dimension(n),intent(in),depend(n) :: y
+            real*8 dimension(n),intent(in),depend(n) :: z
+            real*8 dimension(ns),intent(in) :: xs
+            real*8 dimension(ns),intent(in),depend(ns) :: ys
+            real*8 dimension(ns),intent(in),depend(ns) :: zs
+            real*8 intent(in) :: eps
+            integer*4, optional,intent(hide),depend(m) :: n=len(m)
+            integer*4, optional,intent(hide),depend(xs) :: ns=len(xs)
+            real*8 dimension(ns),intent(out),depend(ns) :: pots
+        end subroutine star_other_potential
+        subroutine midplane_potential(m,x,y,z,xin,yin,zin,eps,n,ni,pote) ! in :twobody:twobody.f95
+            real*8 dimension(n),intent(in) :: m
+            real*8 dimension(n),intent(in),depend(n) :: x
+            real*8 dimension(n),intent(in),depend(n) :: y
+            real*8 dimension(n),intent(in),depend(n) :: z
+            real*8 dimension(ni),intent(in) :: xin
+            real*8 dimension(ni),intent(in),depend(ni) :: yin
+            real*8 dimension(ni),intent(in),depend(ni) :: zin
+            real*8 intent(in) :: eps
+            integer*4, optional,intent(hide),depend(m) :: n=len(m)
+            integer*4, optional,intent(hide),depend(xin) :: ni=len(xin)
+            real*8 dimension(ni),intent(out),depend(ni) :: pote
+        end subroutine midplane_potential
+        subroutine midplane_vcirc2(m,x,y,z,xin,yin,zin,eps,n,ni,vcirc2) ! in :twobody:twobody.f95
+            real*8 dimension(n),intent(in) :: m
+            real*8 dimension(n),intent(in),depend(n) :: x
+            real*8 dimension(n),intent(in),depend(n) :: y
+            real*8 dimension(n),intent(in),depend(n) :: z
+            real*8 dimension(ni),intent(in) :: xin
+            real*8 dimension(ni),intent(in),depend(ni) :: yin
+            real*8 dimension(ni),intent(in),depend(ni) :: zin
+            real*8 intent(in) :: eps
+            integer*4, optional,intent(hide),depend(m) :: n=len(m)
+            integer*4, optional,intent(hide),depend(xin) :: ni=len(xin)
+            real*8 dimension(ni),intent(out),depend(ni) :: vcirc2
+        end subroutine midplane_vcirc2
+    end interface 
+end python module twobody
+
+! This file was auto-generated with f2py (version:1.21.1).
+! See http://cens.ioc.ee/projects/f2py2e/
