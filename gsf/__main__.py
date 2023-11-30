@@ -71,7 +71,7 @@ def main(file_star, file_gas, file_dark, filters=None, out_dir=None, eps=0.1, ra
         Number of multi-dimensional Gaussians or galaxy components. 
         
     covariance_type : string, default='full'
-        By default each clustering component is assumed to have it own general covariance 
+        By default each clustering component is assumed to have its own general covariance 
         matrix ('full'). The other options are: 'tied', 'spherical' and 'diag'. For details, 
         check the sklearn documentation at https://scikit-learn.org/stable/modules/generated/
         
