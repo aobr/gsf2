@@ -1,4 +1,4 @@
-import pickle, gc, time
+import pickle, gc, time, os
 import numpy as np
 import scipy
 import scipy.interpolate
@@ -11,6 +11,7 @@ import PIL
 from PIL import Image
 
 from domath import percentile, rotate_x, ellipticity_from_moments
+from features import feature_labels, feature_range_and_nbin
 
 
 def physical_component_color(kname):
@@ -376,13 +377,13 @@ def plot_moment_maps(tmp_file, file_dec, inclination=90, band=False, M2L=False,
             if M2L:
                 weight = data['mass']/M2L
                 sb_label = r"log($\rm\Sigma$/L$_{\rm\odot}$pc$^{\rm -2}$)"
-                figure_name = figure+'_lumfromM2L'
+                figure_name = figure_name+'_lumfromM2L'
                 print('The weighting will be done with the particle luminosities, derived assuming a constant M/L=%.2f'%M2L)
             pass
     else:
         if M2L:
             weight = data['mass']/M2L
-            figure_name = figure+'_lumfromM2L'
+            figure_name = figure_name+'_lumfromM2L'
             sb_label = r"log($\rm\Sigma$/L$_{\rm\odot}$pc$^{\rm -2}$)"
             print('The weighting will be done with the particle luminosities, derived assuming a constant M/L=%.2f'%M2L)
         else:

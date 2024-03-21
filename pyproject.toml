@@ -16,7 +16,7 @@ name = "gsf"
 description = "Add short description here"
 readme = "README.md"
 maintainers = [
-    { name = "Aura Obreja", email = "your@email.com" },
+    { name = "Aura Obreja", email = "auraobreja@gmail.com" },
 ]
 dynamic = ["version"]
 requires-python = ">=3.8"
@@ -48,6 +48,7 @@ docs = [
 # Command line scripts installed as part of the installation
 [project.scripts]
 gsf = "gsf.__main__:main"
+gsf_loop = "gsf.__main__:main_loop"
 
 # The following section contains setuptools-specific configuration
 # options. For a full reference of available options, check the overview

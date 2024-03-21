@@ -6,19 +6,31 @@
 #    click.echo("This is gsf's command line interface.")
 
 
-
 import click
-import os
-import twobody
-import gc
+import pickle, os, gc, time
 
+from domath import secondsToStr
+from dopotential import star_potential, midplane_potential
+from doclustering import GMM_input, gmm_clustering
+from doplots import plot_moment_maps
+from features import generate_tmp_file, get_list_of_tags_from_file
+
+
+@click.command()
+def main_loop():
+    pass
 
 @click.command()
 @click.argument('file_star', type=click.Path(exists=True, readable=True), nargs=1)
 @click.argument('file_gas', type=click.Path(exists=True, readable=True), nargs=1)
 @click.argument('file_dark', type=click.Path(exists=True, readable=True), nargs=1)
+def main_click():
+
+#    main(file_star, arg2 )
+
+
 def main(file_star, file_gas, file_dark, filters=None, out_dir=None, eps=0.1, radius_align=None, trig_scaling=None,
-         varlist=['jzjc','jpjc','e'], number_of_clusters=2, covariance_type='full', whiten_data=True, n_init=1, 
+         varlist='jzjc,jpjc,e', number_of_clusters=2, covariance_type='full', whiten_data=True, n_init=1, 
          plot=True, band=False, M2L=False, inclination=90., fov=None, verbose=True):
     """
     This is the main function of GalacticStructureFinder (GSF)
@@ -44,24 +56,25 @@ def main(file_star, file_gas, file_dark, filters=None, out_dir=None, eps=0.1, ra
         a new directory output/ in the running directory. 
 
     eps : float, default=0.1
-        Minimum particle separation in kpc units to ensure non-divergent values for 
-        the gravitational potential and acceleration at all particle positions. 
+        Gravitatonal softening in kpc. Represents the minimum particle separation 
+        that ensures non-divergent values for the gravitational potential and acceleration 
+        at all particle positions. 
 
     radius_align : float, default=None
-        The 3D radius in kpc of the farthest particle to consider for orienting the galaxy.
-        If None, assumed to be 0.1*rvir. 
-
+        The 3D radius of the farthest particle to consider for orienting the galaxy.
+        Can be either in fraction of rvir or in kpc. If None, assumed to be 0.1*rvir. 
+        
     trig_scaling : list of bool, default=None
         Setting any of the trig_scaling elements to True will result in the corresponding 
         input feature being scaled as arctan(feature/std(feature)). This might be a good idea 
         for features with large dynamical ranges.
         
-    varlist : list of strings, default=['jzjc','jpjc','e']
-        The list of desired features on which to run the clustering. It can contain any 
-        combination of features either available in file_star or derivable from those 
-        available, as listed in the function available_features(), and constructed in the 
-        function generate_tmp_file(). Adding new features requires altering the following 
-        functions: available_features (add the feature name as a new string), 
+    varlist : string, default='jzjc,jpjc,e'
+        Comma separated names of the desired features on which to run the clustering. 
+        It can contain any combination of features either available in file_star or 
+        derivable from those available, as listed in the function available_features(), 
+        and constructed in the function generate_tmp_file(). Adding new features requires 
+        altering the following functions: available_features (add the feature name as a new string), 
         generate_tmp_file (add the rule on how to compute the feature, if not directly 
         available in correct units in file_star), and optionally feature_labels (add the 
         nice latex formatting for the feature name). Any property available in the tmp_file
@@ -125,6 +138,9 @@ def main(file_star, file_gas, file_dark, filters=None, out_dir=None, eps=0.1, ra
     >>> import numpy as np
     """    
 
+    # Transform varlist from a string to a list of strings
+    varlist = varlist.split(',')
+
     if out_dir is None:
         os.system('mkdir output')
         out_dir = 'output/'
@@ -168,6 +184,9 @@ def main(file_star, file_gas, file_dark, filters=None, out_dir=None, eps=0.1, ra
     print('Total runtime: %s'%secondsToStr(finish-start))
     print('Finish')
     gc.collect()
+
+
+
 
 
 if __name__ == "__main__":
