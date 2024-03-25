@@ -3,25 +3,21 @@
 import sys, os
 import gsf
 
-print('This script calls gsf given valid particle data for one halo.')
-print('gsf.py is a collection of functions that cover the computation of the gravitational potential,')
-print('a wrapper for the Gaussian Mixture Models of scikit-learn and various plotting options.')
-print('The only required input are three files holding the stellar, gas and dark matter particle data for one halo ONLY.')
-print('The only mandatory fields for the gas and dark matter data files are: mass[M_sun], x[kpc], y[kpc], z[kpc].')
-print('For the stellar data file, the mandatory fields are: mass[M_sun], x[kpc], y[kpc], z[kpc], vx[km/s], vy[km/s], vz[km/s].')
-print('If no optional argument is given, the code will look for 2 clusters in the kinematic stellar space of')
-print('(jz/jc,jp/jc,binding_energy), and all output will be saved in the directory set by the out_dir arg')
-print('To have an idea of the various arguments that can be set use verbose=True.')
-print('The feature space can be any combination of mandatory fields, properties derived from the mandatory ones (as described in gsf.available_features()),')
-print('or any other extra properties present in the stellar data file.')
-print('If your desired feature does not exist in gsf.available_features(), you only need to add it to this function,')
-print('and describe how it should be computed in gsf.generate_tmp_file().')
-print('The runtime for the computation of the potential scales as ~N^2')
-print('If you want to run this part of gsf in parallel, set the system variable OMP_NUM_THREADS first (e.g. from bash: export OMP_NUM_THREADS=6).')
-print('In the case loop4optimaln=True, main_gsf loops over number_of_clusters between 1 and 15, ')
-print('and plots the log Likelihood as a function of number_of_clusters, and the log Likelihood and the scree test statistics as functions of the number of free parameteres.')
-print('In this case no moments maps figures are generated.')
-print('By default loop4optimaln=False, and the code plots also the maps of the zeroth, first and second order moments.')
+"""
+This is an example script showing how to run GalacticStructureFinder (GSF) either 
+for one model only (fixed number_of_clusters), or in a loop to find the optimal 
+number_of_clusters.
+
+GSF separates the stellar particles in a simulated dark matter halo into a 
+fixed number of components using Gaussian Mixture Models in an arbitrary, 
+user-defined feature space. 
+
+The only required input are three files containing the star, gas, and dark 
+matter particles properties, in this order. The galaxy is assumed isolated, 
+and centered, and the expected units are: Msun for masses, kpc for Cartesian
+coordinates, and km/s for Cartesian velocities.
+"""
+
 
 ## Define here spatial filters to cut the particle data. 
 filters = None
@@ -41,25 +37,22 @@ filters = None
            #2:{'type':'BandPass','property':'z','LowLimit':-1.,'UpLimit':1.},
            #'add_to_file_names':'solar_neighbourhood'}
 
-# The three data files needed as input
+# The directory where all output will be saved
 out_dir = '/data/aco1/project_victor/g5.22e12/'
+# The three data files needed as input
 file_star = out_dir+'g5.22e12.01024.halo_1.align_with_star.star.dat'
 file_gas = out_dir+'g5.22e12.01024.halo_1.align_with_star.gas.dat'
 file_dark = out_dir+'g5.22e12.01024.halo_1.align_with_star.dark.dat'
 
 
-## Run gsf in a loop (loop4optimaln=True) to get the plot log Likelihood vs nk, and log Likelihood vs n_param.
-## The log(L) vs n_param will be used to do the model selection using the CHull method (Ceulemans & Kiers 2006)
-#gsf.main_gsf(file_star, file_gas, file_dark, out_dir=out_dir, eps=0.01,radius_align=None,
-#             varlist=['jzjc','jpjc','e'], loop4optimaln=True,
-#             covariance_type='full', whiten_data=True, n_init=100, 
-#             plot=True, band=False, M2L=False, inclination=90., filters=filters, verbose=False)
-
-
-# Run gsf only for what is supposed to be a reasonable number of components to generate the moments maps. 
-# For this you need to let loop4optimaln to the default value loop4optimaln=False.
-for number_of_clusters in [2,3]:
-    gsf.main_gsf(file_star, file_gas, file_dark, out_dir=out_dir, eps=0.1,radius_align=None,
-                 varlist=['x','y','z','vx','vy','vz'], loop4optimaln=False,number_of_clusters=number_of_clusters, covariance_type='full', 
-                 whiten_data=True, n_init=100, plot=True, band=False, M2L=False, inclination=90., filters=filters, fov=100, verbose=False)
-
+doloop = False  # switch to True if you want to find the optimal number of components
+if doloop:
+    print('Run gsf in a loop to get the plot log Likelihood vs nk, and log Likelihood vs n_param.')
+    print('The log(L) vs n_param will be used to do the model selection using the elbow method.')
+    gsf.gsf_loop(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', out_dir=out_dir, filters=filters,
+                 n_init=10, verbose=False)  
+else:
+    print('Run gsf only for what is supposed to be a reasonable number of components (e.g. 3) to generate the moments maps.') 
+    number_of_clusters = 3
+    gsf.gsf(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', number_of_clusters=number_of_clusters, out_dir=out_dir, filters=filters,
+            n_init=10, plot=True, band=False, M2L=False, inclination=90., fov=100, verbose=False)
