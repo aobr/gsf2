@@ -38,11 +38,11 @@ filters = None
            #'add_to_file_names':'solar_neighbourhood'}
 
 # The directory where all output will be saved
-out_dir = '/data/aco1/project_victor/g5.22e12/'
+out_dir = 'tests/sim1/'
 # The three data files needed as input
-file_star = out_dir+'g5.22e12.01024.halo_1.align_with_star.star.dat'
-file_gas = out_dir+'g5.22e12.01024.halo_1.align_with_star.gas.dat'
-file_dark = out_dir+'g5.22e12.01024.halo_1.align_with_star.dark.dat'
+file_star = 'tests/sim1/sim1.halo_1.star.dat'
+file_gas = 'tests/sim1/sim1.halo_1.gas.dat'
+file_dark = 'tests/sim1/sim1.halo_1.dark.dat'
 
 
 doloop = False  # switch to True if you want to find the optimal number of components
