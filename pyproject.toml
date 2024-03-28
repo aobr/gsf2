@@ -30,7 +30,7 @@ dependencies = [
     "click",
     "numpy",
     "scipy",
-    "sklearn",
+    "scikit-learn",
 ]
 
 [project.optional-dependencies]
