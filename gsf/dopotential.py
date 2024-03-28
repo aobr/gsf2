@@ -2,7 +2,7 @@ import pickle, time, os, gc
 import numpy as np
 
 import _twobody as twobody
-from domath import secondsToStr, calc_faceon_matrix
+from .domath import secondsToStr, calc_faceon_matrix
 
 grav_const=4.302e-6
 
