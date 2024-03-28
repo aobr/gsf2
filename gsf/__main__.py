@@ -9,9 +9,9 @@
 import click
 
 @click.command()
-@click.argument('file_star', type=click.Path(exists=True, readable=True), nargs=1)
-@click.argument('file_gas', type=click.Path(exists=True, readable=True), nargs=1)
-@click.argument('file_dark', type=click.Path(exists=True, readable=True), nargs=1)
+@click.argument('--file_star', type=click.Path(exists=True, readable=True), nargs=1)
+@click.argument('--file_gas', type=click.Path(exists=True, readable=True), nargs=1)
+@click.argument('--file_dark', type=click.Path(exists=True, readable=True), nargs=1)
 @click.option('--varlist', default='jzjc,jpjc,e', help='Comma separated names of the desired features on which to run the clustering.')
 @click.option('--doloop', is_flag=False, help='Run gsf in a loop to get the plot log Likelihood vs nk, and log Likelihood vs n_param.')
 @click.option('--out_dir', default=None, help='Path to the directory where all data should be saved. If None, gsf will create a new directory output/ in the running directory.')
