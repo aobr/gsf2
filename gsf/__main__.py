@@ -17,21 +17,31 @@ from features import generate_tmp_file, get_list_of_tags_from_file
 
 
 @click.command()
-def main_loop():
-    pass
+@click.argument('file_star', type=click.Path(exists=True, readable=True), nargs=1, help='The star particle data file needed as input.')
+@click.argument('file_gas', type=click.Path(exists=True, readable=True), nargs=1, help='The gas particle data file needed as input.')
+@click.argument('file_dark', type=click.Path(exists=True, readable=True), nargs=1, help='The dark matter particle data file needed as input.')
+@click.option('--out_dir', default=None, help='Path to the directory where all data should be saved. If None, gsf will create a new directory output/ in the running directory.')
+@click.option('--varlist', default='jzjc,jpjc,e', help='Comma separated names of the desired features on which to run the clustering.')
+@click.option('--number_of_clusters', default=2, help='Number of multi-dimensional Gaussians or galaxy components.')
+@click.option('--doloop', is_flag=True, help='Run gsf in a loop to get the plot log Likelihood vs nk, and log Likelihood vs n_param.')
+@click.option('--plot', is_flag=True, help='Plot the 1st, 2nd and 3rd order moment maps for all components and the full galaxy in one figure.')
+@click.option('--n_init', default=1, help='The Expectation-Maximization algorithm of sklearn runs for up to 100 times or until the convergence threshold is met (1.0e-03), using n_init k-means initializations for the clusters.')
+@click.option('--band', is_flag=True, help='If the band is True, and there is a luminosity feature in the tmp_file, the moments maps figure will be done weighting with particle luminosity instead of particle mass.')
+@click.option('--eps', default=0.1, help='Gravitatonal softening in kpc.')
+@click.option('--radius_align', default=None, help='The 3D radius of the farthest particle to consider for orienting the galaxy.')
+@click.option('--trig_scaling', default=None, help='Setting any of the trig_scaling elements to True will result in the corresponding input feature being scaled as arctan(feature/std(feature)).')
+@click.option('--covariance_type', default='full', help='By default each clustering component is assumed to have its own general covariance matrix (full).')
+@click.option('--whiten_data', default=True, help='Center the clustering feature space to the mean and scaled to unit variance, feature by feature.')
+@click.option('--M2L', default=None, help='If the mass-to-light M2L is given, the weighting for the moemnts maps figure will be done with the luminosities computed from masses.')
+@click.option('--inclination', default=90., help='Angle in degrees setting the image perspective.')
+@click.option('--fov', default=None, help='Field-of-view value in kpc.')
+#@click.option('--filters', default=None, help='A dictionary with rules to select a subsample of the stellar particles for clustering using only LowPass, HighPass and BandPass on available or derivable features.')
 
-@click.command()
-@click.argument('file_star', type=click.Path(exists=True, readable=True), nargs=1)
-@click.argument('file_gas', type=click.Path(exists=True, readable=True), nargs=1)
-@click.argument('file_dark', type=click.Path(exists=True, readable=True), nargs=1)
-def main_click():
-
-#    main(file_star, arg2 )
-
-
-def main(file_star, file_gas, file_dark, filters=None, out_dir=None, eps=0.1, radius_align=None, trig_scaling=None,
-         varlist='jzjc,jpjc,e', number_of_clusters=2, covariance_type='full', whiten_data=True, n_init=1, 
-         plot=True, band=False, M2L=False, inclination=90., fov=None, verbose=True):
+def main(file_star, file_gas, file_dark, out_dir=None, varlist='jzjc,jpjc,e', number_of_clusters=2,
+         doloop=True, plot=True, n_init=1, verbose=True, band=False,
+         eps=0.1, radius_align=None, trig_scaling=None,
+         covariance_type='full', whiten_data=True, 
+         M2L=False, inclination=90., fov=None):
     """
     This is the main function of GalacticStructureFinder (GSF)
 
@@ -43,6 +53,9 @@ def main(file_star, file_gas, file_dark, filters=None, out_dir=None, eps=0.1, ra
     matter particles properties, in this order. The galaxy is assumed isolated, 
     and centered, and the expected units are: Msun for masses, kpc for Cartesian
     coordinates, and km/s for Cartesian velocities.  
+
+    GalacticStructureFinder (GSF) either for one model only 
+    (fixed number_of_clusters), or in a loop to find the optimal number_of_clusters.
 
     Parameters
     ----------
@@ -137,56 +150,22 @@ def main(file_star, file_gas, file_dark, filters=None, out_dir=None, eps=0.1, ra
     --------
     >>> import numpy as np
     """    
-
-    # Transform varlist from a string to a list of strings
-    varlist = varlist.split(',')
-
-    if out_dir is None:
-        os.system('mkdir output')
-        out_dir = 'output/'
-
-    start = time.time()
-
-    print('Generate the two potential files that the clustering algorithm needs.')    
-    if verbose:
-        print('This is most likely the most time costly part of the run. To speed up,')
-        print('set the env variable OMP_NUM_THREADS to the number of logical cpus you')
-        print('could use on your machine, and restart gsf.')
-    file_midplane = midplane_potential(file_star,file_dark,file_gas,out_dir=out_dir,eps=eps,radius_align=radius_align)
-    file_potential = star_potential(file_star,file_dark,file_gas,out_dir=out_dir,eps=eps)
-
-    print('Generate large file tmp_file that will be used to select the clustering')
-    print('feature space, and define what properties for the clusters can be computed.')
-    tmp_file = generate_tmp_file(file_star,file_potential,file_midplane,out_dir=out_dir,filters=filters)
-
-    print('Generate the input file for clustering.')
-    GMM_input_file = GMM_input(tmp_file,varlist=varlist,trig_scaling=trig_scaling)
-    data_input = pickle.load(open(GMM_input_file,'rb'))
-    effective_varlist = data_input['feature_space']
-    del(data_input)
-    print('GSF will run the clustering in the input space: ',effective_varlist)
-
-    #Get the available features from the *.tmp file
-    features_in_tmp_file = get_list_of_tags_from_file(tmp_file)
-    tags = []
-    for feature in features_in_tmp_file:
-        if feature not in ['iord','mass','luminosity','filters']: tags.append(feature) 
     
-    print('Features that will appear in the diagnostic file: ',tags)
+    import gsf
 
-    n_param, logL, bic, aic, file_dec = gmm_clustering(GMM_input_file, number_of_clusters = number_of_clusters, covariance_type = covariance_type, 
-                                                        whiten_data = whiten_data, n_init=n_init, plot=plot)
-    
-    print('Plot the results as the zero, first and second order moments maps.')
-    plot_moment_maps(tmp_file, file_dec, inclination=inclination, band=band, M2L=M2L, fov=fov)
-    
-    finish = time.time()
-    print('Total runtime: %s'%secondsToStr(finish-start))
-    print('Finish')
-    gc.collect()
-
-
-
+    if doloop:
+        print('Run gsf in a loop to get the plot log Likelihood vs nk, and log Likelihood vs n_param.')
+        print('The log(L) vs n_param will be used to do the model selection using the elbow method.')
+        gsf.gsf_loop(file_star, file_gas, file_dark, varlist=varlist, out_dir=out_dir, 
+            eps=eps, radius_align=radius_align, trig_scaling=trig_scaling, covariance_type=covariance_type,
+            whiten_data=whiten_data, n_init=n_init, plot=plot, band=band, M2L=M2L, inclination=inclination, fov=fov, 
+            verbose=verbose) 
+    else:
+        print('Run gsf only for what is supposed to be a reasonable number of components to generate the moments maps.') 
+        gsf.gsf(file_star, file_gas, file_dark, varlist=varlist, number_of_clusters=number_of_clusters, out_dir=out_dir, 
+            eps=eps, radius_align=radius_align, trig_scaling=trig_scaling, covariance_type=covariance_type,
+            whiten_data=whiten_data, n_init=n_init, plot=plot, band=band, M2L=M2L, inclination=inclination, fov=fov, 
+            verbose=verbose)
 
 
 if __name__ == "__main__":

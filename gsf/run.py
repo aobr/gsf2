@@ -49,10 +49,10 @@ doloop = False  # switch to True if you want to find the optimal number of compo
 if doloop:
     print('Run gsf in a loop to get the plot log Likelihood vs nk, and log Likelihood vs n_param.')
     print('The log(L) vs n_param will be used to do the model selection using the elbow method.')
-    gsf.gsf_loop(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', out_dir=out_dir, filters=filters,
-                 n_init=10, verbose=False)  
+    gsf.gsf_loop(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', out_dir=out_dir,
+                 n_init=10, verbose=False, filters=filters)  
 else:
     print('Run gsf only for what is supposed to be a reasonable number of components (e.g. 3) to generate the moments maps.') 
     number_of_clusters = 3
-    gsf.gsf(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', number_of_clusters=number_of_clusters, out_dir=out_dir, filters=filters,
-            n_init=10, plot=True, band=False, M2L=False, inclination=90., fov=100, verbose=False)
+    gsf.gsf(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', number_of_clusters=number_of_clusters, out_dir=out_dir,
+            n_init=10, plot=True, band=False, M2L=False, inclination=90., fov=100, verbose=False, filters=filters)

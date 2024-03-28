@@ -28,18 +28,18 @@
 
 import pickle, os, gc, time
 import numpy as np
-from domath import secondsToStr
-from dopotential import star_potential, midplane_potential
-from doclustering import GMM_input, gmm_clustering
-from doplots import plot_moment_maps, plot_diagnostic
-from features import generate_tmp_file, get_list_of_tags_from_file
-from model_selection import select_optimal_model
-from dosummary import compute_percentiles
+from .domath import secondsToStr
+from .dopotential import star_potential, midplane_potential
+from .doclustering import GMM_input, gmm_clustering
+from .doplots import plot_moment_maps, plot_diagnostic
+from .features import generate_tmp_file, get_list_of_tags_from_file
+from .model_selection import select_optimal_model
+from .dosummary import compute_percentiles
 
 
-def gsf(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', number_of_clusters=2, out_dir=None, filters=None,  
+def gsf(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', number_of_clusters=2, out_dir=None,  
         eps=0.1, radius_align=None, trig_scaling=None, covariance_type='full', whiten_data=True, n_init=1, 
-        plot=True, band=False, M2L=False, inclination=90., fov=None, verbose=True):
+        plot=True, band=False, M2L=False, inclination=90., fov=None, verbose=True, filters=None):
     """
     This is the main function of GalacticStructureFinder (GSF)
 
@@ -179,9 +179,9 @@ def gsf(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', number_of_cluster
     return
 
 
-def gsf_loop(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', out_dir=None, filters=None,  
+def gsf_loop(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', out_dir=None, 
              eps=0.1, radius_align=None, trig_scaling=None, covariance_type='full', whiten_data=True, 
-             n_init=1, plot=False, band=False, M2L=False, inclination=90., fov=None, verbose=True):
+             n_init=1, plot=False, band=False, M2L=False, inclination=90., fov=None, verbose=True, filters=None):
     """
     This is the loop function of GalacticStructureFinder (GSF). It will run the gsf function 
     for all consecutive models between number_of_clusters=1 and number_of_clusters=15,
