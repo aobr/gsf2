@@ -29,6 +29,7 @@ classifiers = [
 dependencies = [
     "click",
     "numpy",
+    "matplotlib",
     "scipy",
     "scikit-learn",
 ]
