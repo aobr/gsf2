@@ -14,7 +14,7 @@ build-backend = "scikit_build_core.build"
 [project]
 name = "gsf"
 version = "2.0.0"
-description = "Add short description here"
+description = "GalacticStructureFinder decomposes simulated galaxies based on their stellar kinematics."
 readme = "README.md"
 maintainers = [
     { name = "Aura Obreja", email = "auraobreja@gmail.com" },
@@ -28,6 +28,7 @@ classifiers = [
 ]
 dependencies = [
     "click",
+    "numpy",
 ]
 
 [project.optional-dependencies]
@@ -48,7 +49,6 @@ docs = [
 # Command line scripts installed as part of the installation
 [project.scripts]
 gsf = "gsf.__main__:main"
-gsf_loop = "gsf.__main__:main_loop"
 
 # The following is the configuration for the pytest test suite
 [tool.pytest.ini_options]
