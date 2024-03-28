@@ -7,14 +7,6 @@
 
 
 import click
-import pickle, os, gc, time
-
-from domath import secondsToStr
-from dopotential import star_potential, midplane_potential
-from doclustering import GMM_input, gmm_clustering
-from doplots import plot_moment_maps
-from features import generate_tmp_file, get_list_of_tags_from_file
-
 
 @click.command()
 @click.argument('file_star', type=click.Path(exists=True, readable=True), nargs=1, help='The star particle data file needed as input.')

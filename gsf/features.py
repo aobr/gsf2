@@ -4,8 +4,8 @@ import scipy
 import scipy.interpolate
 import scipy.special
 
-from domath import transform2monotonic, secondsToStr
-from dofilters import apply_filters
+from .domath import transform2monotonic, secondsToStr
+from .dofilters import apply_filters
 
 
 

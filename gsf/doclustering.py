@@ -3,9 +3,9 @@ import numpy as np
 from sklearn.preprocessing import scale
 from sklearn.mixture import GaussianMixture as GMM
 
-from domath import secondsToStr
-from doplots import plot_clustering_results_in_2D, plot_clustering_results_in_1D
-from features import available_features, selected_features, get_list_of_tags_from_file
+from .domath import secondsToStr
+from .doplots import plot_clustering_results_in_2D, plot_clustering_results_in_1D
+from .features import available_features, selected_features, get_list_of_tags_from_file
 
 
 def GMM_input(tmp_file, varlist=['jzjc','jpjc','e'], trig_scaling=None, verbose=True):
