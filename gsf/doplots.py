@@ -10,8 +10,8 @@ import matplotlib.cm as cmx
 import PIL
 from PIL import Image
 
-from domath import percentile, rotate_x, ellipticity_from_moments
-from features import feature_labels, feature_range_and_nbin
+from .domath import percentile, rotate_x, ellipticity_from_moments
+from .features import feature_labels, feature_range_and_nbin
 
 
 def physical_component_color(kname):
