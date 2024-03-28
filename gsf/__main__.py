@@ -9,9 +9,9 @@
 import click
 
 @click.command()
-@click.argument('file_star', type=click.Path(exists=True, readable=True), nargs=1, help='The star particle data file needed as input.')
-@click.argument('file_gas', type=click.Path(exists=True, readable=True), nargs=1, help='The gas particle data file needed as input.')
-@click.argument('file_dark', type=click.Path(exists=True, readable=True), nargs=1, help='The dark matter particle data file needed as input.')
+@click.argument('file_star', type=click.Path(exists=True, readable=True), nargs=1)
+@click.argument('file_gas', type=click.Path(exists=True, readable=True), nargs=1)
+@click.argument('file_dark', type=click.Path(exists=True, readable=True), nargs=1)
 @click.option('--out_dir', default=None, help='Path to the directory where all data should be saved. If None, gsf will create a new directory output/ in the running directory.')
 @click.option('--varlist', default='jzjc,jpjc,e', help='Comma separated names of the desired features on which to run the clustering.')
 @click.option('--number_of_clusters', default=2, help='Number of multi-dimensional Gaussians or galaxy components.')
@@ -27,13 +27,14 @@ import click
 @click.option('--M2L', default=None, help='If the mass-to-light M2L is given, the weighting for the moemnts maps figure will be done with the luminosities computed from masses.')
 @click.option('--inclination', default=90., help='Angle in degrees setting the image perspective.')
 @click.option('--fov', default=None, help='Field-of-view value in kpc.')
+@click.option('--verbose', default=True, help='Gives some useful information that can e.g. speed up the run.')
 #@click.option('--filters', default=None, help='A dictionary with rules to select a subsample of the stellar particles for clustering using only LowPass, HighPass and BandPass on available or derivable features.')
 
 def main(file_star, file_gas, file_dark, out_dir=None, varlist='jzjc,jpjc,e', number_of_clusters=2,
          doloop=True, plot=True, n_init=1, verbose=True, band=False,
          eps=0.1, radius_align=None, trig_scaling=None,
          covariance_type='full', whiten_data=True, 
-         M2L=False, inclination=90., fov=None):
+         M2L=False, inclination=90., fov=None, verbose=True):
     """
     This is the main function of GalacticStructureFinder (GSF)
 
@@ -51,11 +52,6 @@ def main(file_star, file_gas, file_dark, out_dir=None, varlist='jzjc,jpjc,e', nu
 
     Parameters
     ----------
-    filters : dict, default=None
-        A dictionary with rules to select a subsample of the stellar particles for
-        clustering using only LowPass, HighPass and BandPass on available or derivable
-        features.
-
     out_dir : string, default=None
         Path to the directory where all data should be saved. If None, gsf will create 
         a new directory output/ in the running directory. 
