@@ -1,7 +1,7 @@
 import os, pickle, gc
 import numpy as np
-from features import get_list_of_tags_from_file
-from domath import percentile, inertia_shape, shapes, center_of_mass
+from .features import get_list_of_tags_from_file
+from .domath import percentile, inertia_shape, shapes, center_of_mass
 
 def compute_percentiles(file_auxiliary,file_dec,data_massw,data_lumw,soft=True):
     
