@@ -29,7 +29,8 @@ classifiers = [
 dependencies = [
     "click",
     "numpy",
-    "scipy"
+    "scipy",
+    "sklearn",
 ]
 
 [project.optional-dependencies]
