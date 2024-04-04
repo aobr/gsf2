@@ -9,9 +9,9 @@
 import click
 
 @click.command()
-@click.argument('--file_star', type=click.Path(exists=True, readable=True), nargs=1)
-@click.argument('--file_gas', type=click.Path(exists=True, readable=True), nargs=1)
-@click.argument('--file_dark', type=click.Path(exists=True, readable=True), nargs=1)
+@click.argument('file_star', type=click.Path(exists=True, readable=True), nargs=1)
+@click.argument('file_gas', type=click.Path(exists=True, readable=True), nargs=1)
+@click.argument('file_dark', type=click.Path(exists=True, readable=True), nargs=1)
 @click.option('--varlist', default='jzjc,jpjc,e', help='Comma separated names of the desired features on which to run the clustering.')
 @click.option('--doloop', is_flag=False, help='Run gsf in a loop to get the plot log Likelihood vs nk, and log Likelihood vs n_param.')
 @click.option('--out_dir', default=None, help='Path to the directory where all data should be saved. If None, gsf will create a new directory output/ in the running directory.')
@@ -49,7 +49,17 @@ def main(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', doloop=False, ou
     (fixed number_of_clusters), or in a loop to find the optimal number_of_clusters.
 
     Parameters
+
     ----------
+    file_star : string, required 
+        Path to the file containing the star particles properties.
+
+    file_gas : string, required
+        Path to the file containing the gas particles properties.
+        
+    file_dark : string, required
+        Path to the file containing the dark matter particles properties.
+
     out_dir : string, default=None
         Path to the directory where all data should be saved. If None, gsf will create 
         a new directory output/ in the running directory. 
