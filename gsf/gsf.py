@@ -181,7 +181,7 @@ def gsf(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', number_of_cluster
 
 def gsf_loop(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', out_dir=None, 
              eps=0.1, radius_align=None, trig_scaling=None, covariance_type='full', whiten_data=True, 
-             n_init=1, plot=False, band=False, M2L=False, inclination=90., fov=None, verbose=True, filters=None):
+             n_init=1, plot=False, verbose=True, filters=None):
     """
     This is the loop function of GalacticStructureFinder (GSF). It will run the gsf function 
     for all consecutive models between number_of_clusters=1 and number_of_clusters=15,
