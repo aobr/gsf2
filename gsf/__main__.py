@@ -24,7 +24,7 @@ import click
 @click.option('--n_init', default=1, help='The Expectation-Maximization algorithm of sklearn runs for up to 100 times or until the convergence threshold is met (1.0e-03), using n_init k-means initializations for the clusters.')
 @click.option('--plot', is_flag=True, help='Plot the 1st, 2nd and 3rd order moment maps for all components and the full galaxy in one figure.')
 @click.option('--band', is_flag=True, help='If the band is True, and there is a luminosity feature in the tmp_file, the moments maps figure will be done weighting with particle luminosity instead of particle mass.')
-@click.option('--M2L', default=None, help='If the mass-to-light M2L is given, the weighting for the moemnts maps figure will be done with the luminosities computed from masses.')
+@click.option('--m2l', default=None, help='If the mass-to-light M2L is given, the weighting for the moemnts maps figure will be done with the luminosities computed from masses.')
 @click.option('--inclination', default=90., help='Angle in degrees setting the image perspective.')
 @click.option('--fov', default=None, help='Field-of-view value in kpc.')
 @click.option('--verbose', default=True, help='Gives some useful information that can e.g. speed up the run.')
@@ -32,7 +32,7 @@ import click
 
 def main(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', doloop=False, out_dir=None, number_of_clusters=2,
          eps=0.1, radius_align=None, trig_scaling=None, covariance_type='full', whiten_data=True, n_init=1, plot=True,
-         band=False, M2L=False, inclination=90., fov=None, verbose=True):
+         band=False, m2l=False, inclination=90., fov=None, verbose=True):
     """
     This is the main function of GalacticStructureFinder (GSF)
 
@@ -163,7 +163,7 @@ def main(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', doloop=False, ou
         print('Run gsf only for what is supposed to be a reasonable number of components to generate the moments maps.') 
         gsf.gsf(file_star, file_gas, file_dark, varlist=varlist, number_of_clusters=number_of_clusters, out_dir=out_dir, 
             eps=eps, radius_align=radius_align, trig_scaling=trig_scaling, covariance_type=covariance_type,
-            whiten_data=whiten_data, n_init=n_init, plot=plot, band=band, M2L=M2L, inclination=inclination, fov=fov, 
+            whiten_data=whiten_data, n_init=n_init, plot=plot, band=band, M2L=m2l, inclination=inclination, fov=fov, 
             verbose=verbose)
 
 
