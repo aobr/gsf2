@@ -323,7 +323,7 @@ def midplane_potential(file_star, file_dark, file_gas, out_dir=None, eps=0.1,
     bindingE = 0.5*(v_circ**2) + pot_midplane
     
     mvir = np.sum(data['mass']) + np.sum(data_dark['mass']) + np.sum(data_gas['mass'])
-    vvir = np.sqrt(grav_const*np.float(mvir)/np.float(rvir))
+    vvir = np.sqrt(grav_const*np.float64(mvir)/np.float64(rvir))
     
     f = open(fileout,'wb')
     pickle.dump({'matrix':R_matrix,'rvir':rvir,'mvir':mvir,'vvir':vvir,'radius_align':radius_align,'eps':eps,
