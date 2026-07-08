@@ -1,141 +1,92 @@
-# Ignore setuptools_scm generated version file
-gsf/_version.py
+# ---------------------------------------------------------------------------
+# .gitignore for gsf (GalacticStructureFinder)
+# Covers: Python, scikit-build-core / CMake / f2py build artifacts,
+# virtual environments, test/coverage output, docs builds, editors, OS cruft.
+# ---------------------------------------------------------------------------
 
-# Byte-compiled / optimized / DLL files
+# --- Python bytecode / caches ---
 __pycache__/
 *.py[cod]
 *$py.class
 
-# C extensions
-*.so
-
-# Distribution / packaging
-.Python
+# --- Packaging / distribution ---
 build/
-develop-eggs/
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
 sdist/
-var/
-wheels/
-share/python-wheels/
+wheelhouse/
+*.egg
+*.eggs/
 *.egg-info/
 .installed.cfg
-*.egg
 MANIFEST
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+# --- scikit-build-core / CMake / f2py build artifacts ---
+_skbuild/
+_cmake_build/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+# Compiled Fortran extension(s) produced from twobody.f95 (source stays tracked):
+*.so
+*.pyd
+*.o
+*.mod
+# f2py may drop a build dir when compiling manually via setup.sh:
+/gsf/build/
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-cover/
-
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-.pybuilder/
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-#   For a library or package, you might want to ignore these files since the code is
-#   intended to run in multiple environments; otherwise, check them in:
-# .python-version
-
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
-
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
+# --- Environments / secrets ---
 .env
-.venv
-env/
+.venv/
 venv/
+env/
 ENV/
 env.bak/
 venv.bak/
+.python-version
 
-# Spyder project settings
-.spyderproject
-.spyproject
+# --- Testing / coverage ---
+.pytest_cache/
+.cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+nbval_output/
 
-# Rope project settings
-.ropeproject
+# --- Jupyter ---
+.ipynb_checkpoints/
 
-# mkdocs documentation
-/site
+# --- Sphinx / ReadTheDocs local builds ---
+doc/_build/
+docs/_build/
+doc/generated/
 
-# mypy
+# --- gsf runtime output ---
+# gsf writes results (tmp files, pickles, plots) into an output directory.
+# By default it creates ./output/ in the working directory; ignore that here.
+# NOTE: your example run.py writes into tests/sim1/ — double-check you are NOT
+# accidentally tracking generated plots/pickles alongside the .dat input files.
+/output/
+*.pkl
+
+# --- Type checkers / misc tool caches ---
 .mypy_cache/
 .dmypy.json
 dmypy.json
-
-# Pyre type checker
 .pyre/
-
-# pytype static type analyzer
 .pytype/
-
-# Cython debug symbols
+.hypothesis/
 cython_debug/
+
+# --- Editors / IDEs ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# --- OS ---
+.DS_Store
+Thumbs.db

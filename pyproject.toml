@@ -12,7 +12,10 @@ build-backend = "scikit_build_core.build"
 # a variety of build tools. Notably, the version specified here is the
 # single source of truth for gsf's version
 [project]
-name = "gsf"
+# TODO (name pending): "gsf" is already taken on PyPI (owned by Exelis/ENVI
+# since 2016), so this MUST be changed to the registered name on PyPI. 
+# The import package stays `gsf` regardless of the distribution name here.
+name = "PACKAGE_NAME_PENDING"
 version = "2.0.0"
 description = "GalacticStructureFinder decomposes simulated galaxies based on their stellar kinematics."
 readme = "README.md"
@@ -32,7 +35,13 @@ dependencies = [
     "matplotlib",
     "scipy",
     "scikit-learn",
+    "pillow",
 ]
+
+# Project links shown on the PyPI sidebar and GitHub.
+[project.urls]
+Repository = "https://github.com/aobr/gsf2"
+# Documentation = "https://gsf2.readthedocs.io"   # TODO: uncomment once RTD is live
 
 [project.optional-dependencies]
 tests = [
@@ -53,9 +62,13 @@ docs = [
 [project.scripts]
 gsf = "gsf.__main__:main"
 
-# The following is the configuration for the pytest test suite
+# The following is the configuration for the pytest test suite.
+# NOTE: "notebooks" was removed from testpaths so that a plain `pytest` gives a
+# fast, deterministic pass for anyone cloning the repo. The demo notebook is
+# heavy (it runs the full pipeline and needs the compiled extension + data), so
+# execute it explicitly only when you want to, e.g.:
+#     pytest --nbval notebooks/demo.ipynb
 [tool.pytest.ini_options]
 testpaths = [
     "tests",
-    "notebooks",
 ]

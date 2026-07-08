@@ -1,11 +1,3 @@
-#import click
-#
-#
-#@click.command()
-#def main():
-#    click.echo("This is gsf's command line interface.")
-
-
 import click
 
 @click.command()
