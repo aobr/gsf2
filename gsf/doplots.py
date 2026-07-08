@@ -277,26 +277,33 @@ def plot_clustering_results_in_2D(file_gmm,file_dec,filename_out,
             for k,indx in list(zip(range(nk),indices)):            
                 massk = np.multiply(mass,np.ravel(np.array(posterior_probability[:,indx]).flatten()))
                 dens, xedges, yedges, binnumber = scipy.stats.binned_statistic_2d(x, y, massk, statistic='sum', bins=nbin, range=range2d)
-                cs = ax.contour(dens.transpose(), 5, extent=extent, aspect='auto', origin='lower', linewidths=1, colors=[colorzs[k]], alpha=0.7)
-                
-                for level in cs.collections:
-                    diam = []
-                    for kp,path in reversed(list(enumerate(level.get_paths()))):
-                        # go in reversed order due to deletions!
-                        # include test for "smallness" of your choice here
-                        verts = path.vertices # (N,2)-shape array of contour line coordinates
-                        diameter = np.max(verts.max(axis=0) - verts.min(axis=0))
-                        diam.append(diameter)
-                    # keep only the largest contour
-                    diam = np.array(diam)
-                    if len(diam)>1:
-                        diammax = np.max(diam)
-                        diam[diam<diammax] = -1
-                        ii = 0
-                        for kp,path in reversed(list(enumerate(level.get_paths()))):
-                            if diam[ii]<0: 
-                                del(level.get_paths()[kp])
-                            ii = ii+1
+                cs = ax.contour(dens.transpose(), 5, extent=extent, origin='lower', linewidths=1, colors=[colorzs[k]], alpha=0.7)
+
+                # Keep only the largest connected segment at each contour level.
+                # matplotlib >= 3.8 makes a ContourSet a single Collection whose
+                # get_paths() returns one compound Path per level (disconnected
+                # segments within a level are separated by MOVETO codes); the old
+                # .collections attribute was removed in matplotlib 3.10. So we
+                # split each level's compound Path and keep only the biggest piece.
+                from matplotlib.path import Path as _MplPath
+                pruned_paths = []
+                for compound in cs.get_paths():
+                    verts, codes = compound.vertices, compound.codes
+                    if codes is None or len(verts) == 0:
+                        pruned_paths.append(compound)
+                        continue
+                    starts = list(np.flatnonzero(codes == _MplPath.MOVETO))
+                    bounds = starts + [len(codes)]
+                    best_v, best_c, best_diam = None, None, -np.inf
+                    for a, b in zip(bounds[:-1], bounds[1:]):
+                        seg = verts[a:b]
+                        if len(seg) == 0:
+                            continue
+                        diameter = np.max(seg.max(axis=0) - seg.min(axis=0))
+                        if diameter > best_diam:
+                            best_diam, best_v, best_c = diameter, verts[a:b], codes[a:b]
+                    pruned_paths.append(compound if best_v is None else _MplPath(best_v, best_c))
+                cs.set_paths(pruned_paths)
     
     plt.savefig(filename_out) 
     plt.close()
