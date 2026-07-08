@@ -168,3 +168,93 @@ def center_of_mass(mass,x,y,z):
     m = np.sum(mass)    
     
     return np.array([np.sum(mass*x)/m,np.sum(mass*y)/m,np.sum(mass*z)/m])
+
+def A2_profile(Stars_Pos, Mstar, boxsize, Nbins, rmax):
+    """
+    Fourier A2/A0 amplitude and phase of the m=2 mode as a function of 3D
+    radius, used as a bar diagnostic. The galaxy is assumed already face-on.
+    Returns (A2_shell, Phase_shell, rbins) restricted to bins with enough
+    particles.
+    """
+    rmin = 0.0
+    Nperbinmin = 100
+    A2_shell = np.zeros(Nbins)
+    Phase_shell = np.zeros(Nbins)
+
+    dx = Stars_Pos[0]
+    dy = Stars_Pos[1]
+    dz = Stars_Pos[2]
+
+    dummy = np.where(dx < -boxsize/2)[0]
+    dx[dx > boxsize/2] = dx[dx > boxsize/2] - boxsize
+    dx[dummy] = dx[dummy] + boxsize
+
+    dummy = np.where(dy < -boxsize/2)[0]
+    dy[dy > boxsize/2] = dy[dy > boxsize/2] - boxsize
+    dy[dummy] = dy[dummy] + boxsize
+
+    dummy = np.where(dz < -boxsize/2)[0]
+    dz[dz > boxsize/2] = dz[dz > boxsize/2] - boxsize
+    dz[dummy] = dz[dummy] + boxsize
+
+    distance = np.sqrt(dx*dx + dy*dy + dz*dz)
+    index = np.argsort(distance)
+    distance = distance[index]
+    Mstar_tmp = Mstar[index]
+    dx = dx[index]/distance
+    dy = dy[index]/distance
+    dz = dz[index]/distance
+
+    nbin_tmp = ((distance-rmin) / (rmax-rmin) * Nbins).astype(int)
+    rbins = np.zeros(Nbins)
+    Nperbin = np.zeros(Nbins, dtype=int)
+    for k in range(Nbins):
+        ndx_tmp = np.where((nbin_tmp == k))[0]
+        Mshell = np.sum(Mstar_tmp[ndx_tmp])
+        rbins[k] = np.mean(distance[ndx_tmp])
+        Nperbin[k] = len(distance[ndx_tmp])
+        costheta = dx[ndx_tmp]
+        sintheta = dy[ndx_tmp]
+        Am = np.nansum(2 * costheta*sintheta * Mstar_tmp[ndx_tmp])
+        Bm = np.nansum((costheta*costheta - sintheta*sintheta) * Mstar_tmp[ndx_tmp])
+        A2 = np.sqrt(Am*Am + Bm*Bm)/Mshell
+        A2_shell[k] = A2
+        Phase2 = 0.5 * np.arctan2(Am, Bm)
+        Phase_shell[k] = Phase2
+
+    return A2_shell[Nperbin > Nperbinmin], Phase_shell[Nperbin > Nperbinmin], rbins[Nperbin > Nperbinmin]
+
+
+def inertia_shape_2D(mass, x, y):
+    """
+    2D (projected) reduced inertia tensor eigen-decomposition. Returns the two
+    eigenvectors and eigenvalues (sorted ascending), used to derive a bar
+    position angle.
+    """
+    r = np.sqrt(x**2 + y**2)
+    x = x[r > 0]
+    y = y[r > 0]
+    mass = mass[r > 0]
+    r = r[r > 0]
+    Ixx = np.sum(np.multiply(mass, ((y**2)/r**2)))
+    Ixy = np.sum(np.multiply(mass, (x*y/r**2)))
+    Iyy = np.sum(np.multiply(mass, ((x**2)/r**2)))
+    massT = np.sum(mass)
+    Inertia = np.array([[Ixx/massT, -Ixy/massT], [-Ixy/massT, Iyy/massT]])
+    eig_values, eig_vector = linalg.eig(Inertia)
+    aux = (np.array(eig_values)).real
+    srt = np.argsort(aux)
+    e1, e2 = aux[srt]
+    v1 = eig_vector[:, srt[0]]
+    v2 = eig_vector[:, srt[1]]
+    return v1, v2, e1, e2
+
+
+def compute_bar_angle_from_2D_inertia_tensor(m_bar, x_bar, y_bar):
+    """
+    Position angle (degrees) of the bar, derived from the 2D inertia tensor of
+    the bar particles.
+    """
+    v1, v2, e1, e2 = inertia_shape_2D(m_bar, x_bar, y_bar)
+    bar_angle = np.arctan(v1[1]/v1[0]) * 180/np.pi
+    return bar_angle

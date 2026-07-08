@@ -2,11 +2,13 @@ import pickle, gc, time, os
 import numpy as np
 import scipy
 import scipy.interpolate
+import scipy.stats
 import matplotlib as mpl
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib.cm as cmx
+from matplotlib.ticker import MultipleLocator
 import PIL
 from PIL import Image
 
@@ -652,3 +654,458 @@ def plot_diagnostic(nk,bic,logL,figout,nk_optimal=None):
 
     gc.collect()
     return
+
+
+def plot_bar_A2_profile(A2divA0, figname):
+    """
+    Two-panel bar diagnostic: the Fourier A2/A0 amplitude and the phase of the
+    m=2 mode as a function of radius, for all the stars in the galaxy.
+    """
+    plt.close()
+    fig = plt.figure(figsize=(12, 9))
+    gs = gridspec.GridSpec(2, 1)
+    ax1 = plt.subplot(gs[0])
+    ax1.tick_params(axis='both', which='both', direction='in', bottom=True, top=True, left=True, right=True)
+    ax1.plot(A2divA0['all binR'], A2divA0['all amplitude'], lw=4, zorder=1, color='lightgrey', label='all')
+    ax1.set_ylabel(r"$A_{\rm 2}/A_{\rm 0}$", fontsize=24)
+    ax1.set_ylim(-0.02, 1.0)
+    plt.setp(ax1.get_xticklabels(), visible=False)
+    plt.setp(ax1.get_yticklabels(), fontsize=22)
+    ax1.legend(loc=1, frameon=True, fontsize=22)
+    ax1.xaxis.set_minor_locator(MultipleLocator())
+    ax1.yaxis.set_minor_locator(MultipleLocator())
+    ax2 = plt.subplot(gs[1])
+    ax2.tick_params(axis='both', which='both', direction='in', bottom=True, top=True, left=True, right=True)
+    ax2.plot(A2divA0['all binR'], A2divA0['all phase'], lw=4, zorder=1, color='lightgrey')
+    ax2.set_xlabel(r"$R$ [kpc]", fontsize=24)
+    ax2.set_ylabel(r"$\psi$ [rad]", fontsize=24)
+    ax2.set_ylim(-1.1*np.pi/2, 1.1*np.pi/2)
+    plt.setp(ax2.get_xticklabels(), fontsize=22)
+    plt.setp(ax2.get_yticklabels(), fontsize=22)
+    ax2.xaxis.set_minor_locator(MultipleLocator())
+    ax2.yaxis.set_minor_locator(MultipleLocator())
+    gs.update(left=0.12, bottom=0.14, right=0.95, top=0.95, wspace=0.01, hspace=0.01)
+    plt.savefig(figname, dpi=300)
+    plt.close()
+    return
+
+
+def plot_phi_distributions(phi_recentered, component, figname, bar_id, bar_angle, kname=None, nphi=60):
+    """
+    Histogram of the recentered azimuthal angle phi for each component, colored
+    and named following the classification conventions, with the bar component
+    highlighted (filled) and the bar position angle annotated. Purely a
+    diagnostic plot (no statistical test).
+    """
+    color_scheme = plt.get_cmap('rainbow')
+    cNorm = colors.Normalize(vmin=0, vmax=1)
+    scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=color_scheme)
+
+    indices = np.unique(component)
+    deltac = 1./(len(indices)-1) if len(indices) > 1 else 1.
+
+    plt.close()
+    fig = plt.figure(figsize=(5, 3.5))
+    gs = gridspec.GridSpec(1, 1)
+    ax = plt.subplot(gs[0])
+    gs.update(left=0.15, bottom=0.15, right=0.95, top=0.95)
+    ax.tick_params(axis='both', which='both', direction='in', bottom=True, top=True, left=True, right=True)
+
+    for ii in indices:
+        xxx = np.copy(phi_recentered[component == ii])
+        color = scalarMap.to_rgba(ii*deltac)
+        label = 'C%i' % ii
+        if kname is not None:
+            color = physical_component_color(kname[ii])
+            label = kname[ii]
+        ax.hist(xxx, bins=nphi, alpha=1, label=label, histtype='step', color=color, lw=1.5)
+
+    # Highlight the bar component with a filled histogram.
+    ax.hist(phi_recentered[component == bar_id], bins=nphi, alpha=0.3, histtype='stepfilled',
+            color=physical_component_color('Bar'), lw=1.5)
+
+    ax.legend(loc=2, frameon=True)
+    ax.set_xlabel(r"$\phi$ [$^{\rm o}$]")
+    ax.set_ylabel(r"histogram")
+    ftext = r"$\phi_{\rm bar}$($I_{\rm xy}$)=%.1f$^{\rm o}$" % bar_angle
+    ax.text(0.95, 0.93, ftext, ha='right', va='center', transform=ax.transAxes)
+
+    plt.savefig(figname, dpi=300)
+    plt.close()
+    return
+
+
+def plot_faceon_surface_mass_density(tmp_file, dec_file, kname=None, max_sd=None, max_R=None,
+                                     median_binding_energy=None, mass_fraction=None):
+    """
+    Face-on stellar surface mass density profile of the whole galaxy and of each
+    component. If kname is given, components are colored and labelled following
+    the classification conventions.
+    """
+    data_dec = pickle.load(open(dec_file, 'rb'))
+    comp = data_dec['label']
+    data_tmp = pickle.load(open(tmp_file, 'rb'))
+    rxy = np.sqrt(data_tmp['x']**2 + data_tmp['y']**2)
+    mass = data_tmp['mass']
+
+    rlim = np.percentile(rxy, 90)
+    if max_R is not None: rlim = max_R
+    dr = 0.3
+    nbins = int(rlim/dr)+1
+
+    plt.close()
+    fig = plt.figure(figsize=(4.0, 2.5))
+    ax1 = fig.add_subplot(1, 1, 1)
+    plt.subplots_adjust(left=0.15, bottom=0.20, right=0.95, top=0.95)
+
+    summass, bin_edges, _ = scipy.stats.binned_statistic(rxy, mass, statistic='sum', bins=nbins, range=(0, rlim))
+    R = 0.5*(bin_edges[1:]+bin_edges[:-1])
+    A = np.pi*(bin_edges[1:]**2-bin_edges[:-1]**2)*1.0e6
+    smd = summass/A
+
+    color_scheme = plt.get_cmap('rainbow')
+    cNorm = colors.Normalize(vmin=0, vmax=1)
+    scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=color_scheme)
+    colorzs = []
+    if len(np.unique(comp)) > 1: deltac = 1./(len(np.unique(comp))-1)
+    else: deltac = 1.
+    for k in np.unique(comp): colorzs.append(scalarMap.to_rgba(k*deltac))
+
+    ax1.plot(R, smd, zorder=-1, color='lightgrey', lw=2)
+    loop_index = np.arange(len(np.unique(comp)))
+    if median_binding_energy is not None: loop_index = np.argsort(median_binding_energy)
+    for k in loop_index:
+        summass_comp, bin_edges, _ = scipy.stats.binned_statistic(rxy[comp == k], mass[comp == k], statistic='sum', bins=nbins, range=(0, rlim))
+        smd_comp = summass_comp/A
+        color = colorzs[k]
+        if kname is not None:
+            color = physical_component_color(kname[k])
+            label = kname[k]
+            if mass_fraction is not None: label = kname[k]+(' (%.2f)' % mass_fraction[k])
+            ax1.plot(R, smd_comp, color=color, lw=1.5, label=label)
+        else:
+            ax1.plot(R, smd_comp, color=color, lw=1)
+
+    ax1.tick_params(axis='both', which='both', direction='in', bottom=True, top=True, left=True, right=True)
+    ax1.legend(loc=1, frameon=False)
+    ax1.set_xlabel(r"R [kpc]")
+    ax1.set_ylabel(r"$\Sigma_{\rm\bigstar}$ [M$_{\rm\odot}$pc$^{\rm -2}$]")
+    if max_R is not None: ax1.set_xlim(0, max_R)
+    else: ax1.set_xlim(0, 1.02*rlim)
+    ax1.semilogy()
+    ax1.xaxis.set_minor_locator(MultipleLocator())
+    if max_sd is not None: ax1.set_ylim(1.0e-5*max_sd, max_sd)
+    plt.savefig(dec_file[:-4]+'_faceon_smd.png', dpi=300)
+    plt.close()
+    return
+
+
+def plot_2inclinations_moment_maps(tmp_file, file_dec, band=False, M2L=False,
+                                   verbose=True, palette='rainbow', one_plot_only=True,
+                                   label_soft=True, *args, **kwargs):
+    """
+    For each component, build a three-panel map (face-on surface density,
+    edge-on surface density, edge-on line-of-sight velocity) and, if
+    one_plot_only, merge them into a single mosaic ordered by mass fraction.
+    """
+    if verbose:
+        print('-------------------------------------------------------------------------------------------------------------------------')
+        print('This function will create for each component found in file_dec a png figure with ')
+        print('surface density face-on, surface density edge-on, and line-of-sight velocity edge-on maps')
+        print('Required input:')
+        print('tmp_file = the big temporary file with all the available info for stellar particles')
+        print('file_dec = the file containing the result of the clustering algorithm.')
+
+    nxny = kwargs.get('nxny', None)  # number of pixels per side
+    fov = kwargs.get('fov', None)    # figure size in kpc
+    kname = kwargs.get('kname', None)  # list of component names
+
+    start = time.time()
+
+    print('Loading the results of the clustering from file_dec...')
+    try:
+        data_dec = pickle.load(open(file_dec, 'rb'))
+    except:
+        print('Input file does not exist. You need to run gmm_clustering_for_stars first!')
+        return
+
+    label = data_dec['label']
+    plabel = data_dec['p_label']
+    iord_dec = data_dec['iord']
+    srt = np.argsort(iord_dec)
+    label = label[srt]
+    plabel = plabel[srt]
+    iord_dec = iord_dec[srt]
+
+    print('The output figure(s) will be saved in the same dir as file_dec.')
+    figure_name = file_dec[:-3]+'variant'
+
+    print('Read the tmp_file...')
+    data = pickle.load(open(tmp_file, 'rb'))
+
+    x1 = data['x']
+    y1 = data['y']
+
+    inclination = 90.
+    pos = np.array([data['x'], data['y'], data['z']])
+    pos = rotate_x(pos, inclination)
+    x = np.array(pos[0, :]).flatten()
+    y = np.array(pos[1, :]).flatten()
+    vel = np.array([data['vx'], data['vy'], data['vz']])
+    vel = rotate_x(vel, inclination)
+    vz = np.array(vel[2, :]).flatten()
+
+    weight = data['mass']
+    sb_label = r"log($\rm\Sigma$/M$_{\rm\odot}$pc$^{\rm -2}$)"
+    if band:
+        try:
+            weight = data['luminosity']
+            sb_label = r"log($\rm\Sigma$/L$_{\rm\odot}$pc$^{\rm -2}$)"
+            figure_name = figure_name+'_luminosity'
+            print('The weighting will be done with the particle luminosities.')
+        except:
+            if M2L:
+                weight = data['mass']/M2L
+                sb_label = r"log($\rm\Sigma$/L$_{\rm\odot}$pc$^{\rm -2}$)"
+                figure_name = figure_name+'_lumfromM2L'
+                print('The weighting will be done with the particle luminosities, derived assuming a constant M/L=%.2f' % M2L)
+            pass
+    else:
+        if M2L:
+            weight = data['mass']/M2L
+            figure_name = figure_name+'_lumfromM2L'
+            sb_label = r"log($\rm\Sigma$/L$_{\rm\odot}$pc$^{\rm -2}$)"
+            print('The weighting will be done with the particle luminosities, derived assuming a constant M/L=%.2f' % M2L)
+        else:
+            figure_name = figure_name+'_mass'
+            print('The weighting will be done with the particle masses.')
+    figure_name = figure_name+'_moments'
+
+    if fov is None:
+        fov = 50.  # kpc
+        print('The box side is %i kpc' % fov)
+    lim = 0.5*fov
+    if nxny is None:
+        pixel_size_kpc = 0.5  # default pixel size is 500 pc
+        nxny = int(2*fov/pixel_size_kpc)
+    print('The images are %ix%i pixels' % (nxny, nxny))
+
+    rangex = (-lim, lim)
+    rangey = (-lim, lim)
+    range2d = (rangex, rangey)
+    extent = [rangex[0], rangex[1], rangey[0], rangey[1]]
+
+    color_scheme = plt.get_cmap(palette)
+    cNorm = colors.Normalize(vmin=0, vmax=1)
+    scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=color_scheme)
+
+    total_mass = np.sum(weight)
+    indices = np.unique(label)
+    indices = indices[np.argsort(indices)]
+    nk = len(indices)
+    deltac = 1./(nk-1)
+
+    if kname is None:
+        kname = []
+        for indx in indices: kname.append('Component %i' % indx)
+
+    kell_face = np.zeros(nk)
+    kell = np.zeros(nk)
+    for k, indx in list(zip(range(nk), indices)):
+        ell = ellipticity_from_moments(x[label == indx], y[label == indx], weight[label == indx])
+        kell[k] = ell
+        ell = ellipticity_from_moments(x1[label == indx], y1[label == indx], weight[label == indx])
+        kell_face[k] = ell
+
+    plot_names = []
+    b2a = []
+    massf = []
+
+    color = 'black'
+    sdens, xedges, yedges, binnumber = scipy.stats.binned_statistic_2d(x, y, weight, statistic='sum', bins=nxny, range=range2d)
+    vlos, xedges, yedges, binnumber = scipy.stats.binned_statistic_2d(x, y, weight*vz, statistic='sum', bins=nxny, range=range2d)
+    vlos = vlos/sdens
+    vlos2, xedges, yedges, binnumber = scipy.stats.binned_statistic_2d(x, y, weight*vz**2, statistic='sum', bins=nxny, range=range2d)
+    vlos2 = vlos2/sdens
+    pixel_size_kpc = abs(xedges[1]-xedges[0])
+    sdens = sdens/(pixel_size_kpc**2*1.0e6)  # solar units per pc^2
+    mass_fraction = 1.
+    massf.append(mass_fraction)
+    ell = ellipticity_from_moments(x, y, weight)
+    b2a.append(1.-ell)
+    text = {'label': [('f=%.2f' % mass_fraction), ('b/a=%.2f' % (1.-ell))]}
+    plot_name = figure_name+'_2inc_component_all.png'
+    plot_names.append(plot_name)
+    sb_max = np.log10(np.max(sdens))
+    sb_min = np.log10(np.min(sdens[sdens > 0.]))
+    sdens[sdens < 10**sb_min] = np.nan
+    vlos[np.isnan(sdens)] = np.nan
+
+    vlos_max = np.percentile(abs(vlos[np.logical_not(np.isnan(vlos))]), 90, method='midpoint')
+
+    sdens_face, xedges, yedges, binnumber = scipy.stats.binned_statistic_2d(x1, y1, weight, statistic='sum', bins=nxny, range=range2d)
+    sdens_face = sdens_face/(pixel_size_kpc**2*1.0e6)
+    sdens_face[sdens_face < 10**sb_min] = np.nan
+    ell = ellipticity_from_moments(x1, y1, weight)
+    text1 = {'label': [('b/a=%.2f' % (1.-ell))]}
+
+    plot_regular_maps_2inclinations(sdens, vlos, sdens_face, 'All stars', extent, rangex, rangey, color, plot_name, sb_label,
+                                    text=text, text1=text1, sb_min=sb_min, sb_max=sb_max, vlos_max=vlos_max)
+
+    for k, indx in zip(range(nk), indices):
+        if label_soft:
+            c_x1 = x1
+            c_y1 = y1
+            c_x = x
+            c_y = y
+            c_v = vz
+            c_weight = np.multiply(weight, np.ravel(np.array(plabel[:, indx]).flatten()))
+        else:
+            c_x1 = x1[label == indx]
+            c_y1 = y1[label == indx]
+            c_x = x[label == indx]
+            c_y = y[label == indx]
+            c_v = vz[label == indx]
+            c_weight = weight[label == indx]
+        mass_fraction = np.sum(c_weight)/total_mass
+        massf.append(mass_fraction)
+        ell = ellipticity_from_moments(c_x, c_y, c_weight)
+        b2a.append(1.-ell)
+        text = {'label': [('f=%.2f' % mass_fraction), ('b/a=%.2f' % (1.-ell))]}
+        color = scalarMap.to_rgba(k*deltac)
+        counts, xedges, yedges, binnumber = scipy.stats.binned_statistic_2d(c_x, c_y, c_weight, statistic='count', bins=nxny, range=range2d)
+        sdens, xedges, yedges, binnumber = scipy.stats.binned_statistic_2d(c_x, c_y, c_weight, statistic='sum', bins=nxny, range=range2d)
+        vlos, xedges, yedges, binnumber = scipy.stats.binned_statistic_2d(c_x, c_y, c_weight*c_v, statistic='sum', bins=nxny, range=range2d)
+        vlos = vlos/sdens
+        vlos2, xedges, yedges, binnumber = scipy.stats.binned_statistic_2d(c_x, c_y, c_weight*c_v**2, statistic='sum', bins=nxny, range=range2d)
+        vlos2 = vlos2/sdens
+        pixel_size_kpc = abs(xedges[1]-xedges[0])
+        sdens = sdens/(pixel_size_kpc**2*1.0e6)
+        plot_name = figure_name+('_2inc_component_%i.png' % indx)
+        sdens[sdens < 10**sb_min] = np.nan
+        vlos[np.isnan(sdens)] = np.nan
+
+        ell = ellipticity_from_moments(c_x1, c_y1, c_weight)
+        text1 = {'label': [('b/a=%.2f' % (1.-ell))]}
+        sdens_face, xedges, yedges, binnumber = scipy.stats.binned_statistic_2d(c_x1, c_y1, c_weight, statistic='sum', bins=nxny, range=range2d)
+        sdens_face = sdens_face/(pixel_size_kpc**2*1.0e6)
+        sdens_face[sdens_face < 10**sb_min] = np.nan
+
+        plot_regular_maps_2inclinations(sdens, vlos, sdens_face, kname[k], extent, rangex, rangey, color, plot_name, sb_label,
+                                        text=text, text1=text1, sb_min=sb_min, sb_max=sb_max, vlos_max=vlos_max)
+
+        plot_names.append(plot_name)
+
+    if one_plot_only:
+        print('I will merge all moments plots in one and erase the individual ones.')
+        mosaic_name = plot_names[0][:-17]+'mosaic.png'
+        srt = np.argsort(np.array(massf[1:]))[::-1]
+        plot_names_ordered = []
+        plot_names_ordered.append(plot_names[0])  # full galaxy on the top row
+        for k in srt: plot_names_ordered.append(plot_names[k+1])
+        print('The components are sorted by their mass fractions from bottom to top.')
+        images = [PIL.Image.open(i) for i in plot_names_ordered]
+        min_shape = sorted([(np.sum(i.size), i.size) for i in images])[0][1]
+        mosaic = np.vstack([np.asarray(i.resize(min_shape)) for i in images])
+        mosaic = PIL.Image.fromarray(mosaic)
+        mosaic.save(mosaic_name)
+        for plot_name in plot_names: os.system('rm -rf '+plot_name)
+
+    gc.collect()
+    return
+
+
+def plot_regular_maps_2inclinations(sdens, vlos, sdens_face, figure_title, extent, rangex, rangey, color, plot_name, sb_label,
+                                    text=None, text1=None, sb_min=None, sb_max=None, vlos_max=None):
+    """
+    Render one three-panel figure (edge-on surface density, edge-on
+    line-of-sight velocity, face-on surface density) for a single component.
+    """
+    smd_color = plt.get_cmap('RdYlBu_r')
+    vlos_color = plt.get_cmap('bwr')
+
+    plt.close()
+    fig = plt.figure(figsize=(10.6, 3.5))
+    gs = gridspec.GridSpec(1, 3)
+
+    ax1 = plt.subplot(gs[0])
+    plt.setp(ax1.get_xticklabels(), fontsize=10, fontweight='bold')
+    plt.setp(ax1.get_yticklabels(), fontsize=10, fontweight='bold')
+    ax1.set_xlabel(r"[kpc]", fontsize=10, fontweight='bold')
+    ax1.set_ylabel(r"[kpc]", fontsize=10, fontweight='bold')
+    ax1.xaxis.labelpad = 2
+    ax1.yaxis.labelpad = 2
+    ax1.set_xlim(rangex)
+    ax1.set_ylim(rangey)
+    ax1.tick_params(axis='both', which='both', direction='in', bottom=True, top=True, left=True, right=True)
+    if sb_min is not None: vmin = sb_min
+    else: vmin = np.log10(np.nanmin(sdens[sdens > 0.]))
+    if sb_max is not None: vmax = sb_max
+    else: vmax = np.log10(np.nanmax(sdens[sdens > 0.]))
+    vmin_face, vmax_face = vmin, vmax
+    im1 = ax1.imshow(np.log10(sdens).transpose(), interpolation='nearest', extent=extent, aspect='auto', origin='lower', cmap=smd_color, vmin=vmin, vmax=vmax, zorder=1)
+    cax1 = fig.add_axes([0.306, 0.15, 0.01, 0.78])
+    cb1 = fig.colorbar(im1, cax=cax1, orientation="vertical")
+    cb1.set_label(label=sb_label, fontsize=10, labelpad=2, fontweight='bold')
+    cb1.ax.tick_params(axis='y', labelleft=False, direction='in', labelright=True, pad=1, size=2)
+    for t in cb1.ax.get_yticklabels():
+        t.set_fontsize(8)
+        t.set_fontweight('bold')
+    if text is not None:
+        props = dict(boxstyle='round', facecolor='white', edgecolor='white', alpha=1.0)
+        ytext = 0.90
+        for string in text['label']:
+            ax1.text(0.05, ytext, string, fontsize=10, fontweight='bold', horizontalalignment='left', verticalalignment='center', transform=ax1.transAxes, bbox=props)
+            ytext = ytext-0.07
+
+    ax2 = plt.subplot(gs[1])
+    plt.setp(ax2.get_xticklabels(), fontsize=10, fontweight='bold')
+    plt.setp(ax2.get_yticklabels(), visible=False)
+    ax2.set_xlabel(r"[kpc]", fontsize=10, fontweight='bold')
+    ax2.xaxis.labelpad = 2
+    ax2.yaxis.labelpad = 2
+    ax2.set_xlim(rangex)
+    ax2.set_ylim(rangey)
+    ax2.tick_params(axis='both', which='both', direction='in', bottom=True, top=True, left=True, right=True)
+    if vlos_max is not None: vmin, vmax = -vlos_max, vlos_max
+    else: vmin, vmax = -np.nanmax(abs(vlos)), np.nanmax(abs(vlos))
+    im2 = ax2.imshow(vlos.transpose(), interpolation='nearest', extent=extent, aspect='auto', origin='lower', cmap=vlos_color, vmin=vmin, vmax=vmax, zorder=1)
+    cax2 = fig.add_axes([0.618, 0.15, 0.01, 0.78])
+    cb2 = fig.colorbar(im2, cax=cax2, orientation="vertical")
+    cb2.set_label(label=r"v$_{\rm los}$ [km/s]", fontsize=10, labelpad=-5, fontweight='bold')
+    cb2.ax.tick_params(axis='y', labelleft=False, direction='in', labelright=True, pad=1, size=2)
+    for t in cb2.ax.get_yticklabels():
+        t.set_fontsize(8)
+        t.set_fontweight('bold')
+
+    ax3 = plt.subplot(gs[2])
+    plt.setp(ax3.get_xticklabels(), fontsize=10, fontweight='bold')
+    plt.setp(ax3.get_yticklabels(), visible=False)
+    ax3.set_xlabel(r"[kpc]", fontsize=10, fontweight='bold')
+    ax3.xaxis.labelpad = 2
+    ax3.yaxis.labelpad = 2
+    ax3.set_xlim(rangex)
+    ax3.set_ylim(rangey)
+    ax3.tick_params(axis='both', which='both', direction='in', bottom=True, top=True, left=True, right=True)
+    im3 = ax3.imshow(np.log10(sdens_face).transpose(), interpolation='nearest', extent=extent, aspect='auto', origin='lower', cmap=smd_color, vmin=vmin_face, vmax=vmax_face, zorder=1)
+    cax3 = fig.add_axes([0.93, 0.15, 0.01, 0.78])
+    cb3 = fig.colorbar(im3, cax=cax3, orientation="vertical")
+    cb3.set_label(label=sb_label, fontsize=10, labelpad=2, fontweight='bold')
+    cb3.ax.tick_params(axis='y', labelleft=False, direction='in', labelright=True, pad=1, size=2)
+    for t in cb3.ax.get_yticklabels():
+        t.set_fontsize(8)
+        t.set_fontweight('bold')
+    if text1 is not None:
+        props = dict(boxstyle='round', facecolor='white', edgecolor='white', alpha=1.0)
+        ytext = 0.90
+        for string in text1['label']:
+            ax3.text(0.05, ytext, string, fontsize=10, fontweight='bold', horizontalalignment='left', verticalalignment='center', transform=ax3.transAxes, bbox=props)
+            ytext = ytext-0.07
+
+    props = dict(boxstyle='round', facecolor='white', edgecolor='black', alpha=1.0)
+    ax2.text(0.5, 0.9, figure_title, fontweight='bold', color=physical_component_color(figure_title), fontsize=12, horizontalalignment='center', verticalalignment='bottom', transform=ax2.transAxes, bbox=props)
+    gs.update(left=0.05, bottom=0.15, right=0.93, top=0.93, hspace=0.22, wspace=0.22)
+    plt.savefig(plot_name)
+    plt.close()
+    gc.collect()
+    return plot_name
