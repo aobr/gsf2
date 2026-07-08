@@ -29,7 +29,7 @@ def physical_component_color(kname):
     if kname=='Spheroid': color='crimson'
     if kname=='Halo': color='magenta'
     if kname=='Classical bulge': color='brown'
-    if kname=='Pseudo bulge': color='darkorange'
+    if kname=='Disky bulge': color='darkorange'
     if kname=='B/P bulge': color='violet'
 
     return color
@@ -514,7 +514,7 @@ def plot_moment_maps(tmp_file, file_dec, inclination=90, band=False, M2L=False,
         print('The components are sorted by their mass fractions from bottom to top.')
         images = [ PIL.Image.open(i) for i in plot_names_ordered ]
         min_shape = sorted( [(np.sum(i.size), i.size ) for i in images])[0][1]
-        mosaic = np.vstack( (np.asarray( i.resize(min_shape) ) for i in images ) )
+        mosaic = np.vstack( [np.asarray( i.resize(min_shape) ) for i in images ] )
         mosaic = PIL.Image.fromarray( mosaic)
         mosaic.save(mosaic_name)        
         for plot_name in plot_names: os.system('rm -rf '+plot_name)
