@@ -10,7 +10,7 @@ import pickle, os, gc
 import numpy as np
 
 from .domath import A2_profile, compute_bar_angle_from_2D_inertia_tensor
-from .dosummary import compute_component_percentiles, make_latex_table_flexible
+from .dosummary import compute_component_percentiles, make_latex_table
 from .doplots import (plot_moment_maps, plot_2inclinations_moment_maps,
                       plot_faceon_surface_mass_density, plot_bar_A2_profile,
                       plot_phi_distributions)
@@ -90,35 +90,12 @@ def tag_components(tmp_file, file_dec, base_output_name=None, fov=80., min_A2A0=
     if verbose: print('Compute the mass-weighted percentiles.')
     resp, respg = compute_component_percentiles(tmp_file, file_dec, features=['r3', 'vphi', 'vz', 'e'], p=[16, 50, 84])
 
-    Erot2Ekin = []
-    for jj in indices:
-        Erot2Ekin.append(0.5*np.sum(data['mass'][component == jj]*data['vphi'][component == jj]**2)/np.sum(data['mass'][component == jj]*data['ke'][component == jj]))
-    Erot2Ekin = np.array(Erot2Ekin)
-
-    vrot2sigmaz = []
-    for jj in indices:
-        vrot2sigmaz.append(resp['vphi'][50][jj]/((resp['vz'][84][jj]-resp['vz'][16][jj])/2))
-    vrot2sigmaz = np.array(vrot2sigmaz)
-
-    # 3D radius enclosing 84% of the component mass, normalized to that of the whole galaxy
-    normalized_extent = []
-    for jj in indices:
-        normalized_extent.append(resp['r3'][84][jj]/respg['r3'][84])
-    normalized_extent = np.array(normalized_extent)
-
-    c2a = []
-    for jj in indices:
-        c2a.append(resp['c'][jj]/resp['a'][jj])
-    c2a = np.array(c2a)
-
-    # Diskyness parameter
-    kappa = 3*Erot2Ekin-2
-    xi = 2*(1-c2a)-1
-    diskyness = (kappa+xi)/2
-
-    distance_to_cm = []
-    for jj in indices:
-        distance_to_cm.append(np.sqrt(resp['cm'][jj][0]**2+resp['cm'][jj][1]**2+resp['cm'][jj][2]**2))
+    # The parameters used for the classification (diskyness, normalized_extent,
+    # distance_to_cm, ...) are now computed inside compute_component_percentiles
+    # and returned in resp.
+    diskyness = resp['diskyness']
+    normalized_extent = resp['normalized_extent']
+    distance_to_cm = resp['distance_to_cm']
 
     # ----- Classify the bar -----
     bar_id = None
@@ -311,7 +288,7 @@ def tag_components(tmp_file, file_dec, base_output_name=None, fov=80., min_A2A0=
 
     # ----- LaTeX summary table -----
     if verbose: print('Make the summary LaTeX table for this model.')
-    make_latex_table_flexible(tmp_file, file_dec, file_dec[:-4]+'table.tex', kname=tag_component)
+    make_latex_table(tmp_file, file_dec, file_dec[:-4]+"table.tex", kname=tag_component)
 
     gc.collect()
     return tag_component

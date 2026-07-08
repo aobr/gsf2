@@ -146,15 +146,19 @@ def compute_percentiles(file_auxiliary,file_dec,data_massw,data_lumw,soft=True):
     return 
 
 
-def compute_component_percentiles(tmp_file, file_dec, soft=True, features=['r3', 'vphi', 'vz'], p=[16, 50, 84]):
+def compute_component_percentiles(tmp_file, file_dec, soft=True, features=['r3', 'vphi', 'vz'], p=[16, 50, 84], save_to_file=True):
     """
     Mass-weighted percentiles and shape diagnostics for a SINGLE decomposition
     model. Unlike compute_percentiles (used inside the 1->15 model-selection
     loop, which fills nk-indexed dicts in place), this returns two dictionaries
     for one model:
-      result        : per-component percentiles/shapes
+      result        : per-component percentiles/shapes and the parameters used
+                      to name the components (diskyness, normalized_extent, ...)
       result_global : the same quantities for the whole galaxy
-    The naming/classification step relies on both.
+    The naming/classification step (donaming.tag_components) relies on both.
+
+    If save_to_file is True, the two dictionaries are pickled to
+    file_dec[:-3]+'summary.dat'.
     """
     data_dec = pickle.load(open(file_dec, 'rb'))
     p_label = data_dec['p_label']
@@ -283,13 +287,53 @@ def compute_component_percentiles(tmp_file, file_dec, soft=True, features=['r3',
         result['ellipticity'] = np.array(var_e)
         result['prolateness'] = np.array(var_p)
 
+    # --- Parameters used by donaming.tag_components to name the components ---
+    # (everything except the Fourier A2/bar diagnostics, which stay in donaming)
+    def _percomp(res, feat, pp):
+        # per-component percentile array (works for nk==1 and nk>1)
+        return np.atleast_1d(res[feat][pp])
+
+    a_arr = np.atleast_1d(result['a'])
+    c_arr = np.atleast_1d(result['c'])
+    c2a = c_arr/a_arr
+
+    # rotational support kappa = 3*Erot/Ekin - 2, using the hard labels
+    if 'ke' in data and 'vphi' in data:
+        Erot2Ekin = []
+        for jj in indx:
+            ekin = np.sum(data['mass'][label == jj]*data['ke'][label == jj])
+            Erot2Ekin.append(0.5*np.sum(data['mass'][label == jj]*data['vphi'][label == jj]**2)/ekin)
+        Erot2Ekin = np.array(Erot2Ekin)
+        kappa = 3*Erot2Ekin-2
+        xi = 2*(1-c2a)-1
+        result['Erot2Ekin'] = Erot2Ekin
+        result['diskyness'] = (kappa+xi)/2
+
+    if 'r3' in tags:
+        result['normalized_extent'] = _percomp(result, 'r3', 84)/np.atleast_1d(result_global['r3'][84])[0]
+
+    if 'vphi' in tags and 'vz' in tags:
+        result['vrot2sigmaz'] = _percomp(result, 'vphi', 50)/((_percomp(result, 'vz', 84)-_percomp(result, 'vz', 16))/2)
+
+    distance_to_cm = []
+    for jj in range(len(np.atleast_1d(indx))):
+        cm = result['cm'][jj]
+        distance_to_cm.append(np.sqrt(cm[0]**2+cm[1]**2+cm[2]**2))
+    result['distance_to_cm'] = np.array(distance_to_cm)
+    result['c2a'] = c2a
+
+    if save_to_file:
+        summary_file = file_dec[:-3]+'summary.dat'
+        with open(summary_file, 'wb') as fs:
+            pickle.dump({'result': result, 'result_global': result_global}, fs)
+
     del(data, data_dec, p_label, label, iord_dec, srt, varm)
     gc.collect()
 
     return result, result_global
 
 
-def make_latex_table_flexible(tmp_file, file_dec, file_out, kname=None):
+def make_latex_table(tmp_file, file_dec, file_out, kname=None):
     """
     Write a LaTeX table of per-component diagnostics (mass, mass fraction, shape,
     kinematics, and mass-weighted percentiles of the available features) for a
@@ -431,10 +475,18 @@ def make_latex_table_flexible(tmp_file, file_dec, file_out, kname=None):
         outfile.write(bstr+"\\\\ \n")
 
     if 'Z' in data:
+        # Take the log AFTER computing the percentiles directly on Z, so that
+        # particles with Z=0 do not turn into -inf before the percentile.
+        def _z_dex_row(zvals, mass_arr):
+            zp = np.array([percentile(zvals, mass_arr, percent=0.16),
+                           percentile(zvals, mass_arr, percent=0.50),
+                           percentile(zvals, mass_arr, percent=0.84)])
+            aux = np.log10(zp/0.012)
+            return " & %.2f$^{\\rm +%.2f}_{\\rm -%.2f}$" % (aux[1], aux[2]-aux[1], aux[1]-aux[0])
         bstr = "$Z$ [dex]"
-        bstr = bstr + _pct_row("Z", np.log10(data['Z']/0.012), data['mass'])
+        bstr = bstr + _z_dex_row(data['Z'], data['mass'])
         for jj in range(nk):
-            bstr = bstr + _pct_row("Z", np.log10(data['Z'][component == jj]/0.012), data['mass'][component == jj])
+            bstr = bstr + _z_dex_row(data['Z'][component == jj], data['mass'][component == jj])
         outfile.write(bstr+"\\\\ \n")
 
     bstr = "$j_z/j_c$"
