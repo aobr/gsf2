@@ -461,7 +461,7 @@ def plot_moment_maps(tmp_file, file_dec, inclination=90, band=False, M2L=False,
     vlos[np.isnan(sdens)] = np.nan
     sigmalos[np.isnan(sdens)] = np.nan
     
-    vlos_max = np.percentile(abs(vlos[np.logical_not(np.isnan(vlos))]),90,interpolation='midpoint')
+    vlos_max = np.percentile(abs(vlos[np.logical_not(np.isnan(vlos))]),90,method='midpoint')
     if inclination>30.: sigmalos_max = vlos_max #np.nanmax(sigmalos)
     else: sigmalos_max = np.nanmax(sigmalos)    # vlos_max*(2.-np.sin(inclination/180*np.pi))
         
