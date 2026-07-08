@@ -33,7 +33,8 @@ from .dopotential import star_potential, midplane_potential
 from .doclustering import GMM_input, gmm_clustering
 from .doplots import plot_moment_maps, plot_diagnostic
 from .features import generate_tmp_file, get_list_of_tags_from_file
-from .model_selection import select_optimal_model
+from .model_selection import select_optimal_model, gather_deco_stats, st_model_selection, modified_ICL, aggregate_model_selections
+from .donaming import tag_components
 from .dosummary import compute_percentiles
 
 
@@ -170,6 +171,7 @@ def gsf(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', number_of_cluster
     
     print('Plot the results as the zero, first and second order moments maps.')
     plot_moment_maps(tmp_file, file_dec, inclination=inclination, band=band, M2L=M2L, fov=fov)
+    tag_components(tmp_file, file_dec, verbose=verbose)
     
     finish = time.time()
     print('Total runtime: %s'%secondsToStr(finish-start))
@@ -181,7 +183,7 @@ def gsf(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', number_of_cluster
 
 def gsf_loop(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', out_dir=None, 
              eps=0.1, radius_align=None, trig_scaling=None, covariance_type='full', whiten_data=True, 
-             n_init=1, plot=False, verbose=True, filters=None):
+             n_init=1, plot=False, verbose=True, filters=None, min_k=2, max_k=10, order_by='st'):
     """
     This is the loop function of GalacticStructureFinder (GSF). It will run the gsf function 
     for all consecutive models between number_of_clusters=1 and number_of_clusters=15,
@@ -277,6 +279,17 @@ def gsf_loop(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', out_dir=None
     verbose: bool, default=True
         Gives some useful information that can e.g. speed up the run. 
 
+    min_k: int, default=2
+        Minimum number of components considered in the automated model selection.
+
+    max_k: int, default=10
+        Maximum number of components considered in the automated model selection.
+
+    order_by: string, default='st'
+        Criterion used to order the intersection of the st and modified-ICL selections.
+        Can be either 'st' or 'mICL'.
+
+        
     Notes
     -----
         For each model from number_of_clusters=1 to number_of_clusters=15, this function creates one 
@@ -327,6 +340,7 @@ def gsf_loop(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', out_dir=None
                 data_massw[nk][feature][percent] = np.nan
                 data_lumw[nk][feature][percent] = np.nan
 
+    file_decs = []
     BIC = []
     AIC = []
     nk = []
@@ -341,22 +355,32 @@ def gsf_loop(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', out_dir=None
         log_likelihood.append(logL)
         nk.append(number_of_clusters)
         num_param.append(n_param)
+        file_decs.append(file_dec)
         compute_percentiles(tmp_file,file_dec,data_massw,data_lumw)
         gc.collect()
 
     diagnostic_png = GMM_input_file[:-4]+'.scikit_gmm_'+covariance_type+'_logLvsnk.png'
     if whiten_data: diagnostic_png = diagnostic_png[:-13]+'_white_logLvsnk.png'
     plot_diagnostic(nk,BIC,log_likelihood,diagnostic_png)
-    nk_selected, nparam_selected, scree_selected = select_optimal_model(nk,num_param,log_likelihood,figout=diagnostic_png[:-12]+'STvsNparam.png')
+    deco_stats = gather_deco_stats(file_decs)
+    st_dict = st_model_selection(deco_stats, figname=diagnostic_png[:-12]+'st_model_selection.png')
+    micl_dict = modified_ICL(deco_stats, figname=diagnostic_png[:-12]+'modifiedICL_model_selection.png')
+    n_opt = aggregate_model_selections(st_dict, micl_dict, min_k=min_k, max_k=max_k, order_by=order_by)
+    print('The aggregated model selection picked n_opt = %s'%str(n_opt))
     
     diagnostic_file = diagnostic_png[:-12]+'diagnostics.dat'
     f = open(diagnostic_file,'wb')
     pickle.dump({'mixture_features':effective_varlist,'nk':np.array(nk),'num_param':np.array(num_param),
                  'log_likelihood':np.array(log_likelihood),'BIC':np.array(BIC),'AIC':np.array(AIC),
                  'mwp':data_massw,'lwp':data_lumw,
-                 'CHull_model_selection':{'nk':nk_selected,'num_param':nparam_selected,'scree':scree_selected}},f)
+                 #'CHull_model_selection':{'nk':nk_selected,'num_param':nparam_selected,'scree':scree_selected},  # superseded by st+mICL
+                 'deco_stats':deco_stats,'st_model_selection':st_dict,'modifiedICL':micl_dict,'n_opt':n_opt},f)
     f.close()
     del(f)
+    if n_opt is not None:
+        file_dec_opt = deco_stats['files'][list(deco_stats['n']).index(n_opt)]
+        print('Name the components of the optimal model (n=%s).'%str(n_opt))
+        tag_components(tmp_file, file_dec_opt, verbose=verbose)
     gc.collect()
     
     finish = time.time()

@@ -20,11 +20,14 @@ import click
 @click.option('--inclination', default=90., help='Angle in degrees setting the image perspective.')
 @click.option('--fov', default=None, help='Field-of-view value in kpc.')
 @click.option('--verbose', default=True, help='Gives some useful information that can e.g. speed up the run.')
+@click.option('--min_k', default=2, help='Minimum number of components considered in the automated model selection (only used with --doloop).')
+@click.option('--max_k', default=10, help='Maximum number of components considered in the automated model selection (only used with --doloop).')
+@click.option('--order_by', default='st', help="Criterion used to order the intersection of the st and modified-ICL selections: 'st' or 'mICL' (only used with --doloop).")
 #@click.option('--filters', default=None, help='A dictionary with rules to select a subsample of the stellar particles for clustering using only LowPass, HighPass and BandPass on available or derivable features.')
 
 def main(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', doloop=False, out_dir=None, number_of_clusters=2,
          eps=0.1, radius_align=None, trig_scaling=None, covariance_type='full', whiten_data=True, n_init=1, plot=True,
-         band=False, m2l=False, inclination=90., fov=None, verbose=True):
+         band=False, m2l=False, inclination=90., fov=None, verbose=True, min_k=2, max_k=10, order_by='st'):
     """
     This is the main function of GalacticStructureFinder (GSF)
 
@@ -37,7 +40,7 @@ def main(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', doloop=False, ou
     and centered, and the expected units are: Msun for masses, kpc for Cartesian
     coordinates, and km/s for Cartesian velocities.  
 
-    GalacticStructureFinder (GSF) either for one model only 
+    GalacticStructureFinder (GSF) can run either for one model only 
     (fixed number_of_clusters), or in a loop to find the optimal number_of_clusters.
 
     Parameters
@@ -128,6 +131,16 @@ def main(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', doloop=False, ou
     verbose: bool, default=True
         Gives some useful information that can e.g. speed up the run. 
 
+    min_k: int, default=2
+        Minimum number of components considered in the automated model selection.
+
+    max_k: int, default=10
+        Maximum number of components considered in the automated model selection.
+
+    order_by: string, default='st'
+        Criterion used to order the intersection of the st and modified-ICL selections.
+        Can be either 'st' or 'mICL'.
+
 
     Attributes
     ----------
@@ -150,7 +163,8 @@ def main(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', doloop=False, ou
         print('The log(L) vs n_param will be used to do the model selection using the elbow method.')
         gsf.gsf_loop(file_star, file_gas, file_dark, varlist=varlist, out_dir=out_dir, 
             eps=eps, radius_align=radius_align, trig_scaling=trig_scaling, covariance_type=covariance_type,
-            whiten_data=whiten_data, n_init=n_init, plot=plot, verbose=verbose) 
+            whiten_data=whiten_data, n_init=n_init, plot=plot, verbose=verbose,
+            min_k=min_k, max_k=max_k, order_by=order_by) 
     else:
         print('Run gsf only for what is supposed to be a reasonable number of components to generate the moments maps.') 
         gsf.gsf(file_star, file_gas, file_dark, varlist=varlist, number_of_clusters=number_of_clusters, out_dir=out_dir, 
