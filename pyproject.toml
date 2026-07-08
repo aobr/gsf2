@@ -8,13 +8,22 @@ requires = [
 ]
 build-backend = "scikit_build_core.build"
 
+# Explicitly tell scikit-build-core which import package(s) to put in the wheel.
+# This decouples the *import* name (gsf) from the *distribution* name above.
+# Without this, scikit-build-core auto-detects the package from the project
+# name, which fails whenever they differ (e.g. distribution "gsf2" but package
+# "gsf") — producing a wheel with the compiled extension but NO Python package.
+[tool.scikit-build]
+wheel.packages = ["gsf"]
+
 # This section provides general project metadata that is used across
 # a variety of build tools. Notably, the version specified here is the
 # single source of truth for gsf's version
 [project]
 # TODO (name pending): "gsf" is already taken on PyPI (owned by Exelis/ENVI
-# since 2016), so this MUST be changed to the registered name on PyPI. 
-# The import package stays `gsf` regardless of the distribution name here.
+# since 2016), so this MUST be changed to the name your colleague actually
+# registered before uploading — most likely "gsf2". The import package stays
+# `gsf` regardless of the distribution name here.
 name = "PACKAGE_NAME_PENDING"
 version = "2.0.0"
 description = "GalacticStructureFinder decomposes simulated galaxies based on their stellar kinematics."
@@ -35,7 +44,7 @@ dependencies = [
     "matplotlib",
     "scipy",
     "scikit-learn",
-    "pillow",
+    "pillow",           # <-- ADDED: imported in gsf/doplots.py (PIL), was missing
 ]
 
 # Project links shown on the PyPI sidebar and GitHub.
