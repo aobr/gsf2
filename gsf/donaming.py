@@ -1,10 +1,4 @@
-# Copyright (c) 2018--, Aura Obreja and the GalacticStructureFinder (gsf) contributors.
-# GalacticStructureFinder decomposes simulated galaxies based on their stellar kinematics.
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or any later version.
-# See <https://www.gnu.org/licenses/> for details.
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 import pickle, os, gc
 import numpy as np

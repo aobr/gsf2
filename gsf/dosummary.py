@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 import os, pickle, gc
 import numpy as np
 from .features import get_list_of_tags_from_file

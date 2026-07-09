@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 import pickle, gc, time, os
 import numpy as np
 import scipy

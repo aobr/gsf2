@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 import pickle, gc, os, time
 import numpy as np
 from sklearn.preprocessing import scale
