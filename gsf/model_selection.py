@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 import pickle, gc, time
 import numpy as np
 import scipy.interpolate
@@ -11,94 +13,10 @@ import matplotlib.colors as colors
 import matplotlib.cm as cmx
 from matplotlib.ticker import MultipleLocator
 
-
-def select_optimal_model(nk,nparam,logL,figout=None):
-    
-    nk = np.array(nk)
-    nparam = np.array(nparam)
-    logL = np.array(logL)
-    
-    plt.close()
-    fig = plt.figure(figsize=(7.0,4.0))
-    gs = gridspec.GridSpec(1, 1)
-    ax = plt.subplot(gs[0])
-    plt.setp(ax.get_xticklabels(), fontsize=18)
-    plt.setp(ax.get_yticklabels(), fontsize=18)
-    ax.set_xlabel(r"n$_{\rm param}$", fontsize=18)
-    ax.set_ylabel(r"log(L)", fontsize=18)
-    ax.xaxis.labelpad = 2
-    ax.yaxis.labelpad = 2
-
-    ax2 = ax.twinx()
-    ax2.set_ylabel(r"st", fontsize=18,color='dodgerblue')
-    plt.setp(ax2.get_yticklabels(), fontsize=18)
-    ax2.yaxis.labelpad = 2
-    ax2.tick_params(axis='y', labelcolor='dodgerblue')
-
-    ax.scatter(nparam,logL,color='black',zorder=1)
-    ax.plot(nparam,logL,color='black',zorder=1)
-    points = (np.array([nparam,logL])).transpose()
-    hull = ConvexHull(points)
-    nparam_keep = points[hull.vertices,0]
-    logL_keep = points[hull.vertices,1]
-    logL_keep = logL_keep[np.argsort(nparam_keep)]
-    nparam_keep = nparam_keep[np.argsort(nparam_keep)]
-    ax.scatter(nparam_keep,logL_keep,color='violet',s=30,marker='*',zorder=2)
-    ax.plot(nparam_keep,logL_keep,color='violet',zorder=2)
-    j = np.arange(len(nparam_keep))
-    nparam_select = []
-    gain_select = []
-    for jj in j[1:-1]:
-        nparam_select.append(nparam_keep[jj])
-        top = (logL_keep[jj]-logL_keep[jj-1])/(nparam_keep[jj]-nparam_keep[jj-1])
-        bottom = (logL_keep[jj+1]-logL_keep[jj])/(nparam_keep[jj+1]-nparam_keep[jj])
-        gain_select.append(top/bottom)
-    ax2.scatter(np.array(nparam_select),np.array(gain_select),s=30,marker='*',color='dodgerblue')
-    ax2.plot(np.array(nparam_select),np.array(gain_select),color='dodgerblue')
-    nk_select = []
-    for npa in nparam_select: nk_select.append(int(nk[nparam==npa]))
-    srt = np.argsort(gain_select)
-    
-    nk_out = np.array(nk_select)
-    nparam_out = np.array(nparam_select)
-    scree_out = np.array(gain_select)
-    
-    ytext = 0.35
-    for ll in range(len(gain_select)):
-        ax2.text(0.80,ytext,r"%i"%np.array(nk_select)[srt][ll],color='black',fontsize=15,ha='center',va='center',transform=ax2.transAxes)
-        ytext = ytext+0.07
-    ax2.text(0.80,ytext,r"n$_{\rm k}$",color='black',fontsize=15,ha='center',va='center',transform=ax2.transAxes)
-    ytext = 0.35
-    for ll in range(len(gain_select)):
-        ax2.text(0.88,ytext,r"%.1f"%np.array(gain_select)[srt][ll],color='dodgerblue',fontsize=15,ha='center',va='center',transform=ax2.transAxes)
-        ytext = ytext+0.07
-    ax2.text(0.88,ytext,r"st",color='dodgerblue',fontsize=15,ha='center',va='center',transform=ax2.transAxes)
-    pos_max = np.argmax(np.array(gain_select))
-    nk_1best = nk[nparam==nparam_select[pos_max]][0]
-    gain_select.pop(pos_max)
-    nparam_select.pop(pos_max)
-    pos_max = np.argmax(np.array(gain_select))
-    nk_2best = nk[nparam==nparam_select[pos_max]][0]
-    if 7<nk_1best: nk_best = nk_2best
-    else: nk_best = nk_1best
-
-    ax.tick_params(axis='both', which='both', direction='in', bottom=True, top=True, left=False, right=True)
-    ax2.tick_params(axis='both', which='both', direction='in', bottom=False, top=False, left=True, right=False)
-    gs.update(left=0.15,bottom=0.14,right=0.90, top=0.95, hspace=0.40, wspace=0.40)
-    if figout is not None: plt.savefig(figout)
-    plt.close()
-    
-    print('The scree test selected the model with %i Gaussians as most favoured.'%nk_best)
-
-    srt = np.argsort(scree_out)
-
-    return nk_out[srt][::-1], nparam_out[srt][::-1], scree_out[srt][::-1]
-
 # ===========================================================================
-# Data-driven model selection (st + modified ICL), replacing the old
-# select_optimal_model() CHull scree above. The heavy per-particle arrays in
-# the deco files are read one at a time by gather_deco_stats() and reduced to
-# the few scalars each criterion needs.
+# Data-driven model selection (st + modified ICL), The heavy per-particle 
+# arrays in the deco files are read one at a time by gather_deco_stats() 
+# and reduced to the few scalars each criterion needs.
 # ===========================================================================
 
 
@@ -192,14 +110,15 @@ def lambda_sweep(stats, lam_min=0.1, lam_max=100., n_lambda=1000, log_spacing=Tr
     return {'lambdas': lambdas, 'Kopt': Kopt, 'K_values': K, 'icl_matrix': icl_matrix, 'plateaus': plateaus}
 
 
-def modified_ICL(stats, figname=None, figtitle=None, Kmin=2, Kmax=100,
+def modified_ICL(stats, figname=None, figtitle=None, Kmin=2, Kmax=10,
                  klm=2, lam_min=0.1, n_lambda=1000, log_spacing=True):
     """
     Modified-ICL stability analysis (Section 3.1.2). Computes the physically
     motivated lambda_max = |ln(L_klm)/EN_klm|, sweeps lambda, and derives the
-    normalized plateau-width weight P(n) for each model order n in [Kmin,Kmax]
-    (excluding n=1). Optionally saves the P(n) figure. Returns a dict with the
-    ranking (models ordered by decreasing P(n)).
+    normalized plateau-width weight P(n) for every model order n>1 (the paper
+    convention), while the returned ranking is restricted to [Kmin, Kmax].
+    Optionally saves the P(n) figure. Returns a dict with the ranking (models
+    ordered by decreasing P(n)).
     """
     K = stats['n']
     N = stats['N']
@@ -215,19 +134,24 @@ def modified_ICL(stats, figname=None, figtitle=None, Kmin=2, Kmax=100,
     resultsl = lambda_sweep(stats, lam_min=lam_min, lam_max=lambda_max, n_lambda=n_lambda, log_spacing=log_spacing)
     plat = resultsl['plateaus']
 
+    # P(n) is normalized over ALL model orders n>1 (the paper convention): it is
+    # the fraction of the reasonable lambda range supporting each n.
     total_lambda_width = 0.
     for key in plat.keys():
-        if key >= Kmin and key <= Kmax:
+        if key > 1:
             total_lambda_width += plat[key]['width']
     Klist, deltafraclist = [], []
     for key in plat.keys():
-        if key >= Kmin and key <= Kmax and total_lambda_width > 0:
+        if key > 1 and total_lambda_width > 0:
             Klist.append(key)
             deltafraclist.append(plat[key]['width']/total_lambda_width)
     # order by decreasing P(n)
     order = np.argsort(deltafraclist)[::-1]
     Klist = [Klist[i] for i in order]
     deltafraclist = [deltafraclist[i] for i in order]
+    # The ranking used for model selection is restricted to [Kmin, Kmax],
+    # keeping the P(n) order.
+    ranking = [k for k in Klist if Kmin <= k <= Kmax]
 
     if figname is not None:
         Roman_numbers = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV']
@@ -257,19 +181,15 @@ def modified_ICL(stats, figname=None, figtitle=None, Kmin=2, Kmax=100,
         if figtitle is not None: ax.set_title(figtitle, fontsize=24)
         ax.text(0.75, 0.9, r"Rank", color='black', fontsize=22, ha='center', va='center', transform=ax.transAxes)
         ax.text(0.88, 0.9, r"$n$", color='black', fontsize=22, ha='center', va='center', transform=ax.transAxes)
-        ii = 0
-        for k in Klist:
-            if k <= 10:
-                ii += 1
-                if ii < 4:
-                    ax.text(0.75, 0.9-0.1*ii, Roman_numbers[ii-1], color='black', fontsize=22, ha='center', va='center', transform=ax.transAxes)
-                    ax.text(0.88, 0.9-0.1*ii, k, color='black', fontsize=22, ha='center', va='center', transform=ax.transAxes)
+        for jj, k in enumerate(ranking[:3]):
+            ax.text(0.75, 0.9-0.1*(jj+1), Roman_numbers[jj], color='black', fontsize=22, ha='center', va='center', transform=ax.transAxes)
+            ax.text(0.88, 0.9-0.1*(jj+1), k, color='black', fontsize=22, ha='center', va='center', transform=ax.transAxes)
         gs.update(left=0.15, bottom=0.14, right=0.90, top=0.87)
         plt.savefig(figname, dpi=300)
         plt.close()
 
     return {'K': np.array(Klist), 'Pn': np.array(deltafraclist), 'plateaus': plat,
-            'ranking': list(Klist), 'lambda_max': lambda_max}
+            'ranking': ranking, 'lambda_max': lambda_max}
 
 
 def _st_ranking(stats, Kmin=2, Kmax=10):
@@ -357,12 +277,18 @@ def st_model_selection(stats, figname=None, figtitle=None, Kmin=2, Kmax=10):
     return res
 
 
-def compare_all_criteria(stats):
+def compare_all_criteria(stats, Kmin=2, Kmax=10, st_dict=None, micl_dict=None):
     """
     Print the top-ranked model order n for each criterion (BIC, AIC, ICL, st,
-    modified-ICL). EN alone is intentionally not ranked (it is degenerate and
-    trivially favours n=1). Returns a dict with the per-model criterion values
-    and the st and mICL sub-results.
+    modified-ICL), restricted to [Kmin, Kmax] for st and mICL. 
+
+    If st_dict and/or micl_dict (the outputs of st_model_selection and
+    modified_ICL) are supplied, they are reused instead of being recomputed —
+    which is what gsf_loop does, since it has already computed both. When called
+    standalone they default to None and are computed internally.
+
+    Returns a dict with the per-model criterion values and the st and mICL
+    sub-results.
     """
     K = stats['n']
     N = stats['N']
@@ -373,8 +299,8 @@ def compare_all_criteria(stats):
     AIC = -2*logL_total + 2*nparam
     ICL = compute_modified_icl(stats, lam=1.0)
 
-    st_res = _st_ranking(stats)
-    micl_res = modified_ICL(stats, figname=None)
+    st_res = _st_ranking(stats, Kmin=Kmin, Kmax=Kmax) if st_dict is None else st_dict
+    micl_res = modified_ICL(stats, figname=None, Kmin=Kmin, Kmax=Kmax) if micl_dict is None else micl_dict
 
     def _top_min(values, m=3):
         return [int(K[i]) for i in np.argsort(values)[:m]]
@@ -389,26 +315,26 @@ def compare_all_criteria(stats):
     return {'K': K, 'BIC': BIC, 'AIC': AIC, 'ICL': ICL, 'st': st_res, 'mICL': micl_res}
 
 
-def aggregate_model_selections(st_dict, mICL_dict, min_k=2, max_k=10, order_by='st'):
+def aggregate_model_selections(st_dict, mICL_dict, Kmin=2, Kmax=10, order_by='st'):
     """
     Combine the st and modified-ICL selections: take the intersection of the
-    two rankings within [min_k, max_k], order it by decreasing st (order_by=
+    two rankings within [Kmin, Kmax], order it by decreasing st (order_by=
     'st') or decreasing lambda plateau width (order_by='mICL'), and return the
     best-ranked order n_opt. If the two selections do not intersect in range,
     fall back to the top st model (with a warning).
     """
-    st_rank = [k for k in st_dict['rank_st'] if min_k <= k <= max_k]
-    micl_rank = [k for k in mICL_dict['ranking'] if min_k <= k <= max_k]
+    st_rank = [k for k in st_dict['rank_st'] if Kmin <= k <= Kmax]
+    micl_rank = [k for k in mICL_dict['ranking'] if Kmin <= k <= Kmax]
     intersection = [k for k in st_rank if k in micl_rank]
 
     if len(intersection) == 0:
         if len(st_rank) > 0:
             n_opt = st_rank[0]
             print('WARNING: st and mICL selections do not intersect in [%i,%i]; '
-                  'falling back to the top st model (n=%i).' % (min_k, max_k, n_opt))
+                  'falling back to the top st model (n=%i).' % (Kmin, Kmax, n_opt))
         else:
             n_opt = None
-            print('WARNING: no model selected in [%i,%i].' % (min_k, max_k))
+            print('WARNING: no model selected in [%i,%i].' % (Kmin, Kmax))
         return n_opt
 
     if order_by == 'mICL':

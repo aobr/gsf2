@@ -1,30 +1,4 @@
-# Copyright (c) 2018--, Aura Obreja and the GalacticStructureFinder (gsf) contributors.
-# GalacticStructureFinder decomposes simulated galaxies based on their stellar kinematics. 
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
-# See the GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
-#
-# This program uses third-party libraries:
-# - numpy (http://www.numpy.org/)
-# - scipy (https://www.scipy.org/)
-# - matplotlib (https://matplotlib.org/)
-# - pynbody (https://github.com/pynbody/pynbody)
-# - scikit-learn (http://scikit-learn.org/stable/)
-# Please refer to the original licensing conditions for each of these third party software libraries. 
-# 
-# If you use this program or parts of it, please cite the original article presenting gsf: 
-# Obreja, Maccio, Moster et al MNRAS 2018, "Introducing galactic structure finder: the 
-# multiple stellar kinematic structures of a Milky Way mass galaxy" 2018MNRAS.477.4915O 
-#  
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 import pickle, os, gc, time
 import numpy as np
@@ -33,7 +7,7 @@ from .dopotential import star_potential, midplane_potential
 from .doclustering import GMM_input, gmm_clustering
 from .doplots import plot_moment_maps, plot_diagnostic
 from .features import generate_tmp_file, get_list_of_tags_from_file
-from .model_selection import select_optimal_model, gather_deco_stats, st_model_selection, modified_ICL, aggregate_model_selections
+from .model_selection import gather_deco_stats, st_model_selection, modified_ICL, compare_all_criteria, aggregate_model_selections
 from .donaming import tag_components
 from .dosummary import compute_percentiles
 
@@ -183,7 +157,7 @@ def gsf(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', number_of_cluster
 
 def gsf_loop(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', out_dir=None, 
              eps=0.1, radius_align=None, trig_scaling=None, covariance_type='full', whiten_data=True, 
-             n_init=1, plot=False, verbose=True, filters=None, min_k=2, max_k=10, order_by='st'):
+             n_init=1, plot=False, verbose=True, filters=None, Kmin=2, Kmax=10, order_by='st'):
     """
     This is the loop function of GalacticStructureFinder (GSF). It will run the gsf function 
     for all consecutive models between number_of_clusters=1 and number_of_clusters=15,
@@ -279,10 +253,10 @@ def gsf_loop(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', out_dir=None
     verbose: bool, default=True
         Gives some useful information that can e.g. speed up the run. 
 
-    min_k: int, default=2
+    Kmin: int, default=2
         Minimum number of components considered in the automated model selection.
 
-    max_k: int, default=10
+    Kmax: int, default=10
         Maximum number of components considered in the automated model selection.
 
     order_by: string, default='st'
@@ -363,9 +337,10 @@ def gsf_loop(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', out_dir=None
     if whiten_data: diagnostic_png = diagnostic_png[:-13]+'_white_logLvsnk.png'
     plot_diagnostic(nk,BIC,log_likelihood,diagnostic_png)
     deco_stats = gather_deco_stats(file_decs)
-    st_dict = st_model_selection(deco_stats, figname=diagnostic_png[:-12]+'st_model_selection.png')
-    micl_dict = modified_ICL(deco_stats, figname=diagnostic_png[:-12]+'modifiedICL_model_selection.png')
-    n_opt = aggregate_model_selections(st_dict, micl_dict, min_k=min_k, max_k=max_k, order_by=order_by)
+    st_dict = st_model_selection(deco_stats, figname=diagnostic_png[:-12]+'st_model_selection.png', Kmin=Kmin, Kmax=Kmax)
+    micl_dict = modified_ICL(deco_stats, figname=diagnostic_png[:-12]+'modifiedICL_model_selection.png', Kmin=Kmin, Kmax=Kmax)
+    compare_all_criteria(deco_stats, Kmin=Kmin, Kmax=Kmax, st_dict=st_dict, micl_dict=micl_dict)
+    n_opt = aggregate_model_selections(st_dict, micl_dict, Kmin=Kmin, Kmax=Kmax, order_by=order_by)
     print('The aggregated model selection picked n_opt = %s'%str(n_opt))
     
     diagnostic_file = diagnostic_png[:-12]+'diagnostics.dat'
