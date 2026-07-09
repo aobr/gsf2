@@ -311,8 +311,8 @@ def gsf_loop(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', out_dir=None
     start = time.time()
     
     print('Generate the files that the clustering algorithm needs...')
-    file_potential = star_potential(file_star,file_dark,file_gas,out_dir=out_dir,eps=eps,verbose=verbose)
-    file_midplane = midplane_potential(file_star,file_dark,file_gas,out_dir=out_dir,eps=eps,radius_align=radius_align,verbose=verbose)
+    file_potential = star_potential(file_star,file_dark,file_gas,out_dir=out_dir,eps=eps)
+    file_midplane = midplane_potential(file_star,file_dark,file_gas,out_dir=out_dir,eps=eps,radius_align=radius_align)
     tmp_file = generate_tmp_file(file_star,file_potential,file_midplane,out_dir=out_dir,filters=filters,verbose=verbose)
     GMM_input_file = GMM_input(tmp_file,varlist=varlist,trig_scaling=trig_scaling,verbose=verbose)
     data_input = pickle.load(open(GMM_input_file,'rb'))
