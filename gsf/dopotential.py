@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 import pickle, time, os, gc
 import numpy as np
 
@@ -318,7 +320,11 @@ def midplane_potential(file_star, file_dark, file_gas, out_dir=None, eps=0.1,
     
     v_circ = np.zeros(nbins)
     for j in range(nbins):
-        v_circ[j] = np.sqrt(grav_const*(vcirc2[j]+vcirc2[j+nbins]+vcirc2[j+2*nbins]+vcirc2[j+3*nbins])*0.25)
+        # The averaged vcirc^2 can come out slightly negative in the innermost
+        # bins (numerical noise in the midplane potential gradient); clip to 0
+        # so the sqrt stays real instead of producing a NaN/RuntimeWarning.
+        arg = grav_const*(vcirc2[j]+vcirc2[j+nbins]+vcirc2[j+2*nbins]+vcirc2[j+3*nbins])*0.25
+        v_circ[j] = np.sqrt(arg) if arg > 0. else 0.
     j_circ = v_circ*Rbins
     bindingE = 0.5*(v_circ**2) + pot_midplane
     
