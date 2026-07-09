@@ -70,6 +70,7 @@ docs = [
 # Command line scripts installed as part of the installation
 [project.scripts]
 gsf = "gsf.__main__:main"
+gsf-tag = "gsf.__main__:tag_main"
 
 # The following is the configuration for the pytest test suite.
 # NOTE: "notebooks" was removed from testpaths so that a plain `pytest` gives a
