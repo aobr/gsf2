@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 import click
 
 @click.command()
@@ -5,7 +7,7 @@ import click
 @click.argument('file_gas', type=click.Path(exists=True, readable=True), nargs=1)
 @click.argument('file_dark', type=click.Path(exists=True, readable=True), nargs=1)
 @click.option('--varlist', default='jzjc,jpjc,e', help='Comma separated names of the desired features on which to run the clustering.')
-@click.option('--doloop', is_flag=False, help='Run gsf in a loop to get the plot log Likelihood vs nk, and log Likelihood vs n_param.')
+@click.option('--doloop', is_flag=True, default=False, help='Run gsf in a loop over the number of components (1..15) and pick the optimal one via the st + modified-ICL model selection, instead of a single fixed-n run.')
 @click.option('--out_dir', default=None, help='Path to the directory where all data should be saved. If None, gsf will create a new directory output/ in the running directory.')
 @click.option('--number_of_clusters', default=2, help='Number of multi-dimensional Gaussians or galaxy components.')
 @click.option('--eps', default=0.1, help='Gravitatonal softening in kpc.')
@@ -20,14 +22,14 @@ import click
 @click.option('--inclination', default=90., help='Angle in degrees setting the image perspective.')
 @click.option('--fov', default=None, help='Field-of-view value in kpc.')
 @click.option('--verbose', default=True, help='Gives some useful information that can e.g. speed up the run.')
-@click.option('--min_k', default=2, help='Minimum number of components considered in the automated model selection (only used with --doloop).')
-@click.option('--max_k', default=10, help='Maximum number of components considered in the automated model selection (only used with --doloop).')
+@click.option('--Kmin', 'Kmin', default=2, help='Minimum number of components considered in the automated model selection (only used with --doloop).')
+@click.option('--Kmax', 'Kmax', default=10, help='Maximum number of components considered in the automated model selection (only used with --doloop).')
 @click.option('--order_by', default='st', help="Criterion used to order the intersection of the st and modified-ICL selections: 'st' or 'mICL' (only used with --doloop).")
 #@click.option('--filters', default=None, help='A dictionary with rules to select a subsample of the stellar particles for clustering using only LowPass, HighPass and BandPass on available or derivable features.')
 
 def main(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', doloop=False, out_dir=None, number_of_clusters=2,
          eps=0.1, radius_align=None, trig_scaling=None, covariance_type='full', whiten_data=True, n_init=1, plot=True,
-         band=False, m2l=False, inclination=90., fov=None, verbose=True, min_k=2, max_k=10, order_by='st'):
+         band=False, m2l=False, inclination=90., fov=None, verbose=True, Kmin=2, Kmax=10, order_by='st'):
     """
     This is the main function of GalacticStructureFinder (GSF)
 
@@ -131,29 +133,20 @@ def main(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', doloop=False, ou
     verbose: bool, default=True
         Gives some useful information that can e.g. speed up the run. 
 
-    min_k: int, default=2
+    Kmin: int, default=2
         Minimum number of components considered in the automated model selection.
 
-    max_k: int, default=10
+    Kmax: int, default=10
         Maximum number of components considered in the automated model selection.
 
     order_by: string, default='st'
         Criterion used to order the intersection of the st and modified-ICL selections.
-        Can be either 'st' or 'mICL'.
+        Can be either 'st' (elbow method) or 'mICL' (modified Integrated Complete Likelihood).
 
-
-    Attributes
-    ----------
-
-    See Also
-    --------
 
     Notes
     -----
 
-    Examples
-    --------
-    >>> import numpy as np
     """    
     
     import gsf
@@ -164,13 +157,37 @@ def main(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', doloop=False, ou
         gsf.gsf_loop(file_star, file_gas, file_dark, varlist=varlist, out_dir=out_dir, 
             eps=eps, radius_align=radius_align, trig_scaling=trig_scaling, covariance_type=covariance_type,
             whiten_data=whiten_data, n_init=n_init, plot=plot, verbose=verbose,
-            min_k=min_k, max_k=max_k, order_by=order_by) 
+            Kmin=Kmin, Kmax=Kmax, order_by=order_by) 
     else:
         print('Run gsf only for what is supposed to be a reasonable number of components to generate the moments maps.') 
         gsf.gsf(file_star, file_gas, file_dark, varlist=varlist, number_of_clusters=number_of_clusters, out_dir=out_dir, 
             eps=eps, radius_align=radius_align, trig_scaling=trig_scaling, covariance_type=covariance_type,
             whiten_data=whiten_data, n_init=n_init, plot=plot, band=band, M2L=m2l, inclination=inclination, fov=fov, 
             verbose=verbose)
+
+
+@click.command()
+@click.argument('tmp_file', type=click.Path(exists=True, readable=True), nargs=1)
+@click.argument('file_dec', type=click.Path(exists=True, readable=True), nargs=1)
+@click.option('--fov', default=80., help='Field-of-view in kpc used for the moment maps.')
+@click.option('--min_a2a0', 'min_A2A0', default=0.2, help='Threshold on max(A2/A0) above which the galaxy is considered barred.')
+@click.option('--make_plots', default=True, help='Produce the diagnostic and moment-map figures.')
+@click.option('--verbose', default=True, help='Print progress information.')
+def tag_main(tmp_file, file_dec, fov=80., min_A2A0=0.2, make_plots=True, verbose=True):
+    """
+    Assign physical names to the components of an EXISTING gsf decomposition.
+
+    This is the same step that gsf and gsf_loop run automatically; it is exposed
+    separately so that a decomposition can be (re)named without re-running the
+    clustering. The two required inputs are produced by a gsf/gsf_loop run: the
+    tmp_file with the per-particle stellar properties, and the file_dec with the
+    GMM decomposition result. It writes the component tags (file_dec[:-4]+
+    '_tags.dat'), a LaTeX summary table (file_dec[:-4]+'table.tex') and, unless
+    --make_plots is False, the moment-map and phi/bar diagnostic figures.
+    """
+    import gsf
+    gsf.tag_components(tmp_file, file_dec, fov=fov, min_A2A0=min_A2A0,
+                       make_plots=make_plots, verbose=verbose)
 
 
 if __name__ == "__main__":
