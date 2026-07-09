@@ -344,7 +344,7 @@ def make_latex_table(tmp_file, file_dec, file_out, kname=None):
     'age' and 'Z' rows are only written if those fields exist in tmp_file.
     """
     data = pickle.load(open(tmp_file, 'rb'))
-    print('Load the decontaminated deco file.')
+    print('Load the deco file.')
     data_dec = pickle.load(open(file_dec, 'rb'))
     component = data_dec['label']
 
