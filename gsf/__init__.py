@@ -12,8 +12,13 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-# The version file is generated automatically by setuptools_scm
-#from gsf._version import version as __version__
+from importlib.metadata import version as _version, PackageNotFoundError
+try:
+    __version__ = _version("galactic-structure-finder")
+except PackageNotFoundError:      # running from a source tree without install
+    __version__ = "unknown"
+
 from .gsf import gsf, gsf_loop
 from .donaming import tag_components

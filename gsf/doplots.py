@@ -145,10 +145,6 @@ def plot_clustering_results_in_2D(file_gmm,file_dec,filename_out,
     mass = np.ones(len(mass))   # do not weight with the mass
     label = data_cluster['label']
     posterior_probability = data_cluster['p_label']
-    #covariance_type = data_cluster['covariance_type']
-    #gmeans = data_cluster['gmeans']
-    #gweight = data_cluster['gweight']
-    #gcovar = data_cluster['gcovar']
 
     indices = np.unique(label)
     indices = indices[np.argsort(indices)]

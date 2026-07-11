@@ -361,7 +361,6 @@ def gsf_loop(file_star, file_gas, file_dark, varlist='jzjc,jpjc,e', out_dir=None
     pickle.dump({'mixture_features':effective_varlist,'nk':np.array(nk),'num_param':np.array(num_param),
                  'log_likelihood':np.array(log_likelihood),'BIC':np.array(BIC),'AIC':np.array(AIC),
                  'mwp':data_massw,'lwp':data_lumw,
-                 #'CHull_model_selection':{'nk':nk_selected,'num_param':nparam_selected,'scree':scree_selected},  # superseded by st+mICL
                  'deco_stats':deco_stats,'st_model_selection':st_dict,'modifiedICL':micl_dict,'n_opt':n_opt},f)
     f.close()
     del(f)

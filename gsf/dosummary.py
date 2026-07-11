@@ -9,7 +9,6 @@ from .domath import percentile, inertia_shape, shapes, center_of_mass
 def compute_percentiles(file_auxiliary,file_dec,data_massw,data_lumw,soft=True):
     
     data_dec = pickle.load(open(file_dec,'rb'))
-    #gmm_features = data_dec['features']
     p_label = data_dec['p_label']
     label = data_dec['label']
     iord_dec = data_dec['iord']
