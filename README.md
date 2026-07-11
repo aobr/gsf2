@@ -6,12 +6,12 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXXXX)
      Remove this comment once done. -->
 
-**Galactic Structure Finder (gsf)** decomposes simulated galaxies into their
-constituent stellar components based on stellar kinematics. Given the star, gas,
-and dark matter particles of an isolated, centered galaxy, it separates the
-stellar particles into components by fitting Gaussian Mixture Models in a 
-user-defined feature space (e.g. circularities and normalized binding energy),
-and applying two information criteria to select the optimal number of components. 
+**Galactic Structure Finder (gsf)** splits simulated galaxies into their
+constituent stellar components based on stellar kinematics. Given the star, 
+gas, and dark matter particles of an isolated, centered galaxy, it separates 
+the stellar particles into components by fitting Gaussian Mixture Models in 
+a user-defined feature space and applying two information criteria to select 
+the optimal number of components. 
 
 The method is described in:
 
@@ -19,6 +19,12 @@ The method is described in:
 > multiple stellar kinematic structures of a Milky Way mass galaxy"*,
 > MNRAS **477**, 4915 (2018).
 > [2018MNRAS.477.4915O](https://ui.adsabs.harvard.edu/abs/2018MNRAS.477.4915O)
+
+and 
+
+> Obreja, Rosas-Guevara, Schaible and Buck, *"How to isolate galactic bars in 
+> simulations"*, MNRAS (2019) 
+> [2026MNRAS](https://doi.org/10.1093/mnras/stag1246)
 
 <!-- TODO: if the paper currently in proofs should also be cited as the
      reference for this release/version, add it here once it has a DOI. -->
@@ -231,7 +237,7 @@ See [LICENSE.md](LICENSE.md) and [COPYING.md](COPYING.md).
 
 ## Acknowledgments
 
-Some routines are adapted from the [pynbody](https://github.com/pynbody/pynbody)
-package (attributed in the source where used). The repository skeleton was
+One function was adapted from the [pynbody](https://github.com/pynbody/pynbody)
+package and attributed in the source where used. The repository skeleton was
 generated with the
 [SSC Cookiecutter for Python Packages](https://github.com/ssciwr/cookiecutter-python-package).
