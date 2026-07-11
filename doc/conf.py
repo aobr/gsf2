@@ -4,12 +4,19 @@
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+import os
+import sys
+# Make the package importable for autodoc when building from a source checkout
+# (on ReadTheDocs the package is pip-installed, so this is just a convenience).
+sys.path.insert(0, os.path.abspath(".."))
+
 
 # -- Project information -----------------------------------------------------
 
 project = 'gsf'
-copyright = '2023, Aura Obreja'
-author = 'Aura Obreja'
+copyright = '2018–2026, Aura Obreja and the gsf contributors'
+author = 'Aura Obreja and the gsf contributors'
+release = '2.0.0'
 
 # -- General configuration ---------------------------------------------------
 
@@ -21,8 +28,18 @@ extensions = [
     "nbsphinx_link",
     "sphinx_mdinclude",
     "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
     "sphinx_rtd_theme",
 ]
+
+# Let autodoc import `gsf` without the compiled Fortran extension being built
+# (e.g. on ReadTheDocs), so the API pages can be generated from the docstrings.
+autodoc_mock_imports = ["_twobody"]
+
+# The demo notebook runs the full pipeline (needs the compiled extension and a
+# few minutes), so it is NOT executed at build time. Run it once locally and
+# commit it with its outputs; nbsphinx then renders those committed outputs.
+nbsphinx_execute = "never"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = []
