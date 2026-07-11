@@ -1,0 +1,81 @@
+cff-version: 1.2.0
+message: >-
+  If you use this software, please cite both the software itself and the two
+  papers listed under "references" below.
+title: "GalacticStructureFinder (gsf)"
+abstract: >-
+  GalacticStructureFinder decomposes simulated galaxies into their constituent
+  stellar components based on stellar kinematics, using Gaussian Mixture Models
+  in a user-defined feature space, and can cleanly isolate galactic bars from
+  single simulation snapshots.
+type: software
+authors:
+  - family-names: Obreja
+    given-names: Aura
+    email: auraobreja@gmail.com
+    # orcid: "https://orcid.org/0000-0000-0000-0000"   # TODO: add if you wish
+  - family-names: Buck
+    given-names: Tobias
+version: "2.0.0"
+date-released: "2026-01-01"          # TODO: set to the actual release date
+license: GPL-3.0-or-later
+repository-code: "https://github.com/aobr/gsf2"
+url: "https://github.com/aobr/gsf2"
+keywords:
+  - astronomy
+  - galaxies
+  - galaxy kinematics
+  - galactic bars
+  - Gaussian mixture models
+  - simulations
+# identifiers:                        # TODO: add after archiving on Zenodo
+#   - type: doi
+#     value: "10.5281/zenodo.XXXXXXX"
+#     description: "Concept DOI (all versions) on Zenodo"
+
+references:
+  # (1) The paper introducing the GalacticStructureFinder method.
+  - type: article
+    title: >-
+      Introducing galactic structure finder: the multiple stellar kinematic
+      structures of a Milky Way mass galaxy
+    authors:
+      - family-names: Obreja
+        given-names: Aura
+      - family-names: Macciò
+        given-names: Andrea V.
+      - family-names: Moster
+        given-names: Benjamin
+      - family-names: Dutton
+        given-names: Aaron A.
+      - family-names: Buck
+        given-names: Tobias
+      - family-names: Stinson
+        given-names: Gregory S.
+      - family-names: Wang
+        given-names: Liang
+    journal: "Monthly Notices of the Royal Astronomical Society"
+    year: 2018
+    volume: 477
+    start: 4915
+    doi: "10.1093/mnras/sty772"      # TODO: verify the DOI (ADS bibcode 2018MNRAS.477.4915O)
+
+  # (2) The bars paper accompanying this release.
+  #     TODO: fill in volume, pages and DOI once the paper is published.
+  - type: article
+    title: "How to isolate galactic bars in simulations"   # TODO: confirm final title
+    authors:
+      - family-names: Obreja
+        given-names: Aura
+      - family-names: Rosas-Guevara
+        given-names: Yetli
+      - family-names: Schaible
+        given-names: Anna Lena
+      - family-names: Buck
+        given-names: Tobias
+    journal: "Monthly Notices of the Royal Astronomical Society"
+    year: 2025                        # TODO: update on publication
+    # volume: 000                     # TODO: add on publication
+    # start: 0                        # TODO: add on publication
+    # doi: "10.1093/mnras/XXXXXXX"    # TODO: add DOI when assigned
+    notes: "In press; update volume, pages and DOI on publication."

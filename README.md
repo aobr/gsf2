@@ -211,14 +211,19 @@ python -m pip install --editable ".[tests]"
 python -m pytest
 ```
 
-## Citation
+## Citing
 
-If you use `gsf` in your work, please cite the MNRAS paper above
-([2018MNRAS.477.4915O](https://ui.adsabs.harvard.edu/abs/2018MNRAS.477.4915O)).
-<!-- TODO (Day 2): once you have a Zenodo concept DOI for the software,
-     add it here so the code itself is citable, and consider adding a
-     CITATION.cff file to the repo root for GitHub's "Cite this repository". -->
+If you use `gsf` in your work, please cite both papers:
 
+- Obreja et al. 2018, MNRAS, 477, 4915 — introduces the method
+  ([2018MNRAS.477.4915O](https://ui.adsabs.harvard.edu/abs/2018MNRAS.477.4915O)).
+- Obreja et al., *How to isolate galactic bars in simulations* — the release
+  accompanying this version (reference details to be added on publication).
+
+Machine-readable metadata is provided in [`CITATION.cff`](CITATION.cff), which
+GitHub surfaces through the "Cite this repository" button.
+<!-- TODO: once the software is archived on Zenodo, add the concept-DOI badge at
+     the top of this README, and the DOI here and in CITATION.cff. -->
 ## License
 
 `gsf` is released under the GNU General Public License v3.0.
