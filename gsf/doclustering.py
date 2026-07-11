@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (c) 2018--, Aura Obreja and the GalacticStructureFinder (gsf) contributors.
 
 import pickle, gc, os, time
 import numpy as np

@@ -6,12 +6,12 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXXXX)
      Remove this comment once done. -->
 
-**GalacticStructureFinder (gsf)** decomposes simulated galaxies into their
+**Galactic Structure Finder (gsf)** decomposes simulated galaxies into their
 constituent stellar components based on stellar kinematics. Given the star, gas,
 and dark matter particles of an isolated, centered galaxy, it separates the
-stellar particles into a chosen number of components by fitting Gaussian
-Mixture Models in a user-defined feature space (e.g. circularities and normalized
-binding energy).
+stellar particles into components by fitting Gaussian Mixture Models in a 
+user-defined feature space (e.g. circularities and normalized binding energy),
+and applying two information criteria to select the optimal number of components. 
 
 The method is described in:
 
@@ -85,15 +85,10 @@ python -m pip install .
 
 ### From PyPI
 
-<!-- TODO (name pending): confirm the exact registered PyPI distribution name
-     and then update the command below. If the published name
-     is "gsf2", this line becomes: python -m pip install gsf2
-     (The import name in your code stays `import gsf` regardless.) -->
-
 Once released on PyPI:
 
 ```bash
-python -m pip install PACKAGE_NAME_PENDING
+python -m pip install galactic-structure-finder
 ```
 
 ## Quick start
@@ -114,7 +109,7 @@ export OMP_NUM_THREADS=8   # number of threads for the potential calculation
 
 ### `gsf` — decompose with a fixed number of components
 
-Runs a single Gaussian-mixture decomposition for a given `number_of_clusters`,
+Runs a single Gaussian Mixture decomposition for a given `number_of_clusters`,
 produces the moment maps, and names the components.
 
 **Python:**
@@ -201,7 +196,7 @@ gsf-tag output/sim1.halo_1.star.tmp \
 See `gsf --help` and `gsf-tag --help` for the full list of options.
 
 ## Documentation
-
+Copyright (c) 2018--, Aura Obreja and the GalacticStructureFinder (gsf) contributors.
 <!-- TODO: enable the ReadTheDocs integration and link it here, e.g.
      https://gsf2.readthedocs.io  — then add its badge at the top. -->
 API documentation and an example notebook are available in the `doc/` and

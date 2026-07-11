@@ -1,4 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (c) 2018--, Aura Obreja and the GalacticStructureFinder (gsf) contributors.
+
 """End-to-end smoke test of the Python API on the bundled example galaxy."""
 import glob
 import os

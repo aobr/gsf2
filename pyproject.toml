@@ -19,14 +19,12 @@ wheel.packages = ["gsf"]
 # This section provides general project metadata that is used across
 # a variety of build tools. Notably, the version specified here is the
 # single source of truth for gsf's version
-[project]
-# TODO (name pending): "gsf" is already taken on PyPI (owned by Exelis/ENVI
-# since 2016), so this MUST be changed to the name your colleague actually
-# registered before uploading — most likely "gsf2". The import package stays
+# The import package stays
 # `gsf` regardless of the distribution name here.
-name = "PACKAGE_NAME_PENDING"
+[project]
+name = "galactic-structure-finder"
 version = "2.0.0"
-description = "GalacticStructureFinder decomposes simulated galaxies based on their stellar kinematics."
+description = "Galactic-Structure-Finder decomposes simulated galaxies based on their stellar kinematics."
 readme = "README.md"
 maintainers = [
     { name = "Aura Obreja", email = "auraobreja@gmail.com" },
@@ -44,7 +42,7 @@ dependencies = [
     "matplotlib",
     "scipy",
     "scikit-learn",
-    "pillow",           # <-- ADDED: imported in gsf/doplots.py (PIL), was missing
+    "pillow",
 ]
 
 # Project links shown on the PyPI sidebar and GitHub.

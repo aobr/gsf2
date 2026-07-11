@@ -1,4 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (c) 2018--, Aura Obreja and the GalacticStructureFinder (gsf) contributors.
+
 """Shared pytest fixtures for the gsf test-suite."""
 import os
 # Ensure matplotlib never tries to open a window during the tests.
