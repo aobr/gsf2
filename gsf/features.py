@@ -39,22 +39,19 @@ def selected_features(varlist, featurelist):
 def available_features(verbose=True):
 
     if verbose:
-        print('The available features are:')
+        print('--------------------------------------------------------------------------------------')
+        print('The following features MUST be present in the first input file:')
         print('- Cartesian coordinates in kpc: x, y, z')
         print('- Cartesian velocities in km/s: vx, vy, vz')
-        print('- Stellar age in Gyr: age')
-        print('- Formation time in Gyr: tform')
-        print('- Metallicity in mass fraction: Z')
-        print('- Metallicity in Iron: FeH')
-        print('- Alpha enhancement: OFe')
-        print('- Specific angular momentum of the corresponding (same energy) circular orbit: jc')
-        print('- Cartesian specific angular momentum: jx, jy, jz')
-        print('- Specific angular momentum along a direction perpendicular to the z-axis: jp')
-        print('- Circularity parameter: jzjc')
-        print('- The normal to the circularity parameter: jpjc')
-        print('- Normalized binding energy: e')
+        print('The following features are DERIVED from the mandatory ones (mass,x,y,z,vx,vy,vz):')
         print('- Specific kinetic energy: ke')
         print('- Specific potential energy: pe')
+        print('- Normalized binding energy: e')
+        print('- Cartesian specific angular momentum: jx, jy, jz')
+        print('- Specific angular momentum along a direction perpendicular to the z-axis: jp')
+        print('- Specific angular momentum of the corresponding (same energy) circular orbit: jc')
+        print('- Circularity parameter: jzjc')
+        print('- The normal to the circularity parameter: jpjc')
         print('- Radius in the equatorial plane: r2')
         print('- 3D radius: r3')
         print('- Height above the equatorial plane: height')
@@ -62,7 +59,23 @@ def available_features(verbose=True):
         print('- Rotational velocity (in the equatorial plane): vphi')
         print('- sqrt(vz^2+vR^2): vnorot')
         print('- sqrt(vz^2+vx^2): vT')
+        print('The following features CAN BE USED only if available in the first input file,')
+        print('under these exact names:')
         print('- orbital actions: JR, JPhi, JZ')
+        print('- Stellar age in Gyr: age')
+        print('- Formation time in Gyr: tform')
+        print('- Metallicity in mass fraction: Z')
+        print('- Metallicity in Iron: FeH')
+        print('- Alpha enhancement: OFe')
+        print('--------------------------------------------------------------------------------------')
+        print('If you want to add any other feature to those above, just add them in the first input')
+        print('file under a new unique name (quick and dirty). If the wanted feature can be computed')
+        print('from those already covered above, you can add how to do so in the generate_tmp_file(),')
+        print('and pass them in the saved dataframe of that function. For nicer formatting, consider')
+        print('to also update accordingly the functions: feature_labels(), feature_range_and_nbin(),')
+        print('and available_features(). If you do not opt for the quick and dirty way, you will have')
+        print('to reinstall gsf for these changes to take effect.')
+        print('--------------------------------------------------------------------------------------')
 
     return ['x','y','z','vx','vy','vz','age','Z','FeH','OFe','ke','pe',
             'jc','jz','jx','jy','jp','jzjc','jpjc','e','r2','r3','height','vR','vphi','vnorot','vT',
@@ -109,7 +122,7 @@ def feature_labels(feature):
 
 def feature_range_and_nbin(feature):
 
-    frange, fnbin = [0.,1.], 100
+    frange, fnbin = None, 100
     if feature=='x': frange, fnbin = [-30.,30.], 150
     if feature=='y': frange, fnbin = [-30.,30.], 150
     if feature=='z': frange, fnbin = [-30.,30.], 150

@@ -97,9 +97,11 @@ def plot_clustering_results_in_1D(file_gmm,file_dec,filename_out,palette='rainbo
         ax.set_xlabel(xlabel,fontsize=18)
         if j==0: ax.set_ylabel(r"M$_{\rm *}$ [M$_{\rm\odot}$]",fontsize=18)
         frange, fnbin = feature_range_and_nbin(features[j])
-        ax.set_xlim(frange)
         
         var = np.array(obs[:,j]).flatten()
+        if frange is None: frange = [np.nanmin(var),np.nanmax(var)]
+        ax.set_xlim(frange)
+
         mass_total, bin_edges, binnumber = scipy.stats.binned_statistic(var, mass, statistic='sum', bins=fnbin, range=frange)
         xvar = 0.5 * (bin_edges[:-1] + bin_edges[1:])
         ax.plot(xvar,mass_total,color='lightgrey',ls='-',lw=3,zorder=-1)
