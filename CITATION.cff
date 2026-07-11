@@ -13,11 +13,11 @@ authors:
   - family-names: Obreja
     given-names: Aura
     email: auraobreja@gmail.com
-    # orcid: "https://orcid.org/0000-0000-0000-0000"   # TODO: add if you wish
+    orcid: "https://orcid.org/0000-0003-4196-8555"
   - family-names: Buck
     given-names: Tobias
 version: "2.0.0"
-date-released: "2026-01-01"          # TODO: set to the actual release date
+date-released: "2026-07-12"          # TODO: set to the actual release date
 license: GPL-3.0-or-later
 repository-code: "https://github.com/aobr/gsf2"
 url: "https://github.com/aobr/gsf2"
@@ -58,10 +58,10 @@ references:
     year: 2018
     volume: 477
     start: 4915
-    doi: "10.1093/mnras/sty772"      # TODO: verify the DOI (ADS bibcode 2018MNRAS.477.4915O)
+    doi: "10.1093/mnras/sty1022"
 
   # (2) The bars paper accompanying this release.
-  #     TODO: fill in volume, pages and DOI once the paper is published.
+  #     TODO: fill in volume and pages once the paper is published
   - type: article
     title: "How to isolate galactic bars in simulations"   # TODO: confirm final title
     authors:
@@ -74,8 +74,8 @@ references:
       - family-names: Buck
         given-names: Tobias
     journal: "Monthly Notices of the Royal Astronomical Society"
-    year: 2025                        # TODO: update on publication
+    year: 2026
     # volume: 000                     # TODO: add on publication
     # start: 0                        # TODO: add on publication
-    # doi: "10.1093/mnras/XXXXXXX"    # TODO: add DOI when assigned
-    notes: "In press; update volume, pages and DOI on publication."
+    doi: "10.1093/mnras/stag1246"
+    notes: "In press; update volume and pages on publication."
