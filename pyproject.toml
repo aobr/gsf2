@@ -24,8 +24,13 @@ wheel.packages = ["gsf"]
 [project]
 name = "galactic-structure-finder"
 version = "2.0.0"
+dynamic = ["version"]
 description = "Galactic-Structure-Finder decomposes simulated galaxies based on their stellar kinematics."
 readme = "README.md"
+authors = [
+  {name = "Aura Obreja", email = "auraobreja@gmail.com"},
+  {name = "Tobias Buck"},
+]
 maintainers = [
     { name = "Aura Obreja", email = "auraobreja@gmail.com" },
 ]
