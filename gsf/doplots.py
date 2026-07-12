@@ -19,6 +19,34 @@ from .domath import percentile, rotate_x, ellipticity_from_moments
 from .features import feature_labels, feature_range_and_nbin
 
 
+def _contour_prune_to_largest(paths):
+    """Keep only the largest connected segment of each contour level.
+
+    `paths` is a list of compound matplotlib Paths (one per contour level);
+    disconnected segments within a level are separated by MOVETO codes. Returns
+    a new list of Paths, each reduced to its single largest segment.
+    """
+    from matplotlib.path import Path as _MplPath
+    pruned = []
+    for compound in paths:
+        verts, codes = compound.vertices, compound.codes
+        if codes is None or len(verts) == 0:
+            pruned.append(compound)
+            continue
+        starts = list(np.flatnonzero(codes == _MplPath.MOVETO))
+        bounds = starts + [len(codes)]
+        best_v, best_c, best_diam = None, None, -np.inf
+        for a, b in zip(bounds[:-1], bounds[1:]):
+            seg = verts[a:b]
+            if len(seg) == 0:
+                continue
+            diameter = np.max(seg.max(axis=0) - seg.min(axis=0))
+            if diameter > best_diam:
+                best_diam, best_v, best_c = diameter, verts[a:b], codes[a:b]
+        pruned.append(compound if best_v is None else _MplPath(best_v, best_c))
+    return pruned
+
+
 def physical_component_color(kname):
     """
     Associates a color to a named galaxy component. 
@@ -283,30 +311,15 @@ def plot_clustering_results_in_2D(file_gmm,file_dec,filename_out,
                 cs = ax.contour(dens.transpose(), 5, extent=extent, origin='lower', linewidths=1, colors=[colorzs[k]], alpha=0.7)
 
                 # Keep only the largest connected segment at each contour level.
-                # matplotlib >= 3.8 makes a ContourSet a single Collection whose
-                # get_paths() returns one compound Path per level (disconnected
-                # segments within a level are separated by MOVETO codes); the old
-                # .collections attribute was removed in matplotlib 3.10. So we
-                # split each level's compound Path and keep only the biggest piece.
-                from matplotlib.path import Path as _MplPath
-                pruned_paths = []
-                for compound in cs.get_paths():
-                    verts, codes = compound.vertices, compound.codes
-                    if codes is None or len(verts) == 0:
-                        pruned_paths.append(compound)
-                        continue
-                    starts = list(np.flatnonzero(codes == _MplPath.MOVETO))
-                    bounds = starts + [len(codes)]
-                    best_v, best_c, best_diam = None, None, -np.inf
-                    for a, b in zip(bounds[:-1], bounds[1:]):
-                        seg = verts[a:b]
-                        if len(seg) == 0:
-                            continue
-                        diameter = np.max(seg.max(axis=0) - seg.min(axis=0))
-                        if diameter > best_diam:
-                            best_diam, best_v, best_c = diameter, verts[a:b], codes[a:b]
-                    pruned_paths.append(compound if best_v is None else _MplPath(best_v, best_c))
-                cs.set_paths(pruned_paths)
+                # Handle both matplotlib APIs: >= 3.8 makes a ContourSet a single
+                # Collection with get_paths()/set_paths(); < 3.8 exposes one
+                # LineCollection per level via .collections. If neither is
+                # available, leave the contours unpruned (purely cosmetic).
+                if hasattr(cs, "get_paths") and hasattr(cs, "set_paths"):
+                    cs.set_paths(_contour_prune_to_largest(cs.get_paths()))
+                elif hasattr(cs, "collections"):
+                    for _coll in cs.collections:
+                        _coll.set_paths(_contour_prune_to_largest(_coll.get_paths()))
     
     plt.savefig(filename_out) 
     plt.close()
