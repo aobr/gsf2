@@ -1,10 +1,7 @@
 # gsf — GalacticStructureFinder
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-<!-- TODO after you connect the repo to Zenodo and tag a release,
-     paste the DOI badge here, e.g.
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXXXX)
-     Remove this comment once done. -->
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21328045.svg)](https://doi.org/10.5281/zenodo.21328045)
 
 **Galactic Structure Finder (gsf)** splits simulated galaxies into their
 constituent stellar components based on stellar kinematics. Given the star, 
@@ -26,8 +23,7 @@ and
 > simulations"*, MNRAS (2019) 
 > [2026MNRAS](https://doi.org/10.1093/mnras/stag1246)
 
-<!-- TODO: if the paper currently in proofs should also be cited as the
-     reference for this release/version, add it here once it has a DOI. -->
+<!-- TODO: add the volume and page once available. -->
 
 ## Requirements
 
@@ -203,8 +199,7 @@ See `gsf --help` and `gsf-tag --help` for the full list of options.
 
 ## Documentation
 Copyright (c) 2018--, Aura Obreja and the GalacticStructureFinder (gsf) contributors.
-<!-- TODO: enable the ReadTheDocs integration and link it here, e.g.
-     https://gsf2.readthedocs.io  — then add its badge at the top. -->
+<!-- TODO: enable ReadTheDocs, then add the docs URL and a badge here -->
 API documentation and an example notebook are available in the `doc/` and
 `notebooks/` directories.
 
@@ -228,8 +223,11 @@ If you use `gsf` in your work, please cite both papers:
 
 Machine-readable metadata is provided in [`CITATION.cff`](CITATION.cff), which
 GitHub surfaces through the "Cite this repository" button.
-<!-- TODO: once the software is archived on Zenodo, add the concept-DOI badge at
-     the top of this README, and the DOI here and in CITATION.cff. -->
+
+The archived releases are citable via the Zenodo concept DOI
+[10.5281/zenodo.21328045](https://doi.org/10.5281/zenodo.21328045), which always
+resolves to the latest version.
+
 ## License
 
 `gsf` is released under the GNU General Public License v3.0.

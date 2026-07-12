@@ -4,10 +4,10 @@ message: >-
   papers listed under "references" below.
 title: "GalacticStructureFinder (gsf)"
 abstract: >-
-  GalacticStructureFinder decomposes simulated galaxies into their constituent
+  GalacticStructureFinder splits simulated galaxies into their constituent
   stellar components based on stellar kinematics, using Gaussian Mixture Models
-  in a user-defined feature space, and can cleanly isolate galactic bars from
-  single simulation snapshots.
+  in a user-defined feature space and applies two information criteria to select 
+  the optimal number of components.
 type: software
 authors:
   - family-names: Obreja
@@ -17,8 +17,12 @@ authors:
   - family-names: Buck
     given-names: Tobias
 version: "2.0.0"
-date-released: "2026-07-12"          # TODO: set to the actual release date
+date-released: "2026-07-13"
 license: GPL-3.0-or-later
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.21328045"
+    description: "Concept DOI (all versions) on Zenodo"
 repository-code: "https://github.com/aobr/gsf2"
 url: "https://github.com/aobr/gsf2"
 keywords:
@@ -28,10 +32,6 @@ keywords:
   - galactic bars
   - Gaussian mixture models
   - simulations
-# identifiers:                        # TODO: add after archiving on Zenodo
-#   - type: doi
-#     value: "10.5281/zenodo.XXXXXXX"
-#     description: "Concept DOI (all versions) on Zenodo"
 
 references:
   # (1) The paper introducing the GalacticStructureFinder method.
@@ -61,9 +61,8 @@ references:
     doi: "10.1093/mnras/sty1022"
 
   # (2) The bars paper accompanying this release.
-  #     TODO: fill in volume and pages once the paper is published
   - type: article
-    title: "How to isolate galactic bars in simulations"   # TODO: confirm final title
+    title: "How to isolate galactic bars in simulations"
     authors:
       - family-names: Obreja
         given-names: Aura
