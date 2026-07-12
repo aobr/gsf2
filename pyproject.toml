@@ -7,7 +7,7 @@ requires = [
     "scikit-build-core",
 ]
 build-backend = "scikit_build_core.build"
-
+ 
 # Explicitly tell scikit-build-core which import package(s) to put in the wheel.
 # This decouples the *import* name (gsf) from the *distribution* name above.
 # Without this, scikit-build-core auto-detects the package from the project
@@ -15,7 +15,7 @@ build-backend = "scikit_build_core.build"
 # "gsf") — producing a wheel with the compiled extension but NO Python package.
 [tool.scikit-build]
 wheel.packages = ["gsf"]
-
+ 
 # This section provides general project metadata that is used across
 # a variety of build tools. Notably, the version specified here is the
 # single source of truth for gsf's version
@@ -33,10 +33,13 @@ authors = [
 maintainers = [
     { name = "Aura Obreja", email = "auraobreja@gmail.com" },
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 license = { text = "GPL-3.0" }
 classifiers = [
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Operating System :: OS Independent",
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
 ]
@@ -48,12 +51,12 @@ dependencies = [
     "scikit-learn",
     "pillow",
 ]
-
+ 
 # Project links shown on the PyPI sidebar and GitHub.
 [project.urls]
 Repository = "https://github.com/aobr/gsf2"
 # Documentation = "https://gsf2.readthedocs.io"   # TODO: uncomment once RTD is live
-
+ 
 [project.optional-dependencies]
 tests = [
     "pytest",
@@ -68,12 +71,12 @@ docs = [
     "sphinx_mdinclude",
     "sphinx_rtd_theme",
 ]
-
+ 
 # Command line scripts installed as part of the installation
 [project.scripts]
 gsf = "gsf.__main__:main"
 gsf-tag = "gsf.__main__:tag_main"
-
+ 
 # The following is the configuration for the pytest test suite.
 # NOTE: "notebooks" was removed from testpaths so that a plain `pytest` gives a
 # fast, deterministic pass for anyone cloning the repo. The demo notebook is
