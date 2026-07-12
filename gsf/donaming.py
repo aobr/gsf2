@@ -41,6 +41,12 @@ def tag_components(tmp_file, file_dec, base_output_name=None, fov=80., min_A2A0=
     tag_component : list of str
         The assigned name of each component, in component-index order.
     """
+
+    print('--------------------------------------------------------------------------')
+    print('| Assign physical names to the kinematic components of the chosen model, |')
+    print('| write the tags to disk, and produce the LaTeX diagnostics table.       |')
+    print('--------------------------------------------------------------------------')
+
     if base_output_name is None:
         base_output_name = file_dec[:-4]+'.'
 
