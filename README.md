@@ -34,7 +34,7 @@ and
 `gsf` builds a small Fortran extension (`twobody.f95`) at install time, so in
 addition to Python you need a working build toolchain **before** installing:
 
-- Python ≥ 3.8
+- Python ≥ 3.10
 - A Fortran compiler (`gfortran`)
 - `cmake`
 - An OpenMP runtime (e.g. `libgomp`)
